@@ -32,7 +32,7 @@ const float pi = 3.141592653589793;
 
 #define eps 0.0001
 #define EYEPATHLENGTH 3
-#define SAMPLES 1
+#define SAMPLES 5
 
 #define LIGHTCOLOR vec3(16.86, 10.76, 8.2)*1.3
 #define WHITECOLOR vec3(.7295, .7355, .729)*0.7
@@ -57,6 +57,7 @@ vec3 hash3() {
 // Intersection functions (by iq)
 //-----------------------------------------------------
 
+// normal?
 vec3 nSphere( in vec3 pos, in vec4 sph ) {
     return (pos-sph.xyz)/sph.w;
 }
@@ -71,7 +72,7 @@ float iSphere( in vec3 ro, in vec3 rd, in vec4 sph ) {
 }
 
 vec3 nPlane( in vec3 ro, in vec4 obj ) {
-    return obj.xyz;
+    return vec3(0);//obj.xyz;
 }
 
 float iPlane( in vec3 ro, in vec3 rd, in vec4 pla ) {
@@ -206,7 +207,7 @@ bool matIsLight( const in float mat ) {
 //-----------------------------------------------------
 // brdf
 //-----------------------------------------------------
-
+// n:normal
 vec3 getBRDFRay( const in vec3 n, const in vec3 rd, const in float m, inout bool specularBounce ) {
     specularBounce = false;
 
