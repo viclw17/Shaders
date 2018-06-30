@@ -333,4 +333,12 @@ void main( void ) {
     tot = pow( clamp(tot,0.0,1.0), vec3(0.45) );
 
     gl_FragColor = vec4( tot, 1.0 );
+
+    // test noise
+    // float h = hash1();
+    // vec2 h2 = hash2();
+    // vec3 h3 = hash3();
+    // gl_FragColor = vec4( h,h,h, 1.0 );
+    // gl_FragColor = vec4( h2,1, 1.0 );
+    // gl_FragColor = vec4( h3, 1.0 );
 }
