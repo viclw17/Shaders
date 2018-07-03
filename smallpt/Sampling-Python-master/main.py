@@ -33,7 +33,7 @@ v = np.random.uniform(0,1,2000000)
 
 
 # Init the figure
-fig = plt.figure()
+fig = plt.figure()sta
 axes = [fig.add_subplot(231),
         fig.add_subplot(232),
         fig.add_subplot(233),
