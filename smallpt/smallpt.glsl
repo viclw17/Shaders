@@ -26,10 +26,10 @@ Zavie
 // Play with the two following values to change quality.
 // You want as many samples as your GPU can bear. :)
 
-#ifdef GL_ES
-precision mediump float;
-#endif
-#define SAMPLES 4
+// #ifdef GL_ES
+// precision mediump float;
+// #endif
+#define SAMPLES 16//48
 #define MAXDEPTH 4
 
 // Not used for now
@@ -39,7 +39,7 @@ precision mediump float;
 #define DIFF 0
 #define SPEC 1
 #define REFR 2
-#define NUM_SPHERES 9
+#define NUM_SPHERES 10//9
 
 //#define LIGHTCOLOR vec3(16.86, 10.76, 8.2)*1.3
 //#define WHITECOLOR vec3(.7295, .7355, .729)*0.7
@@ -58,7 +58,6 @@ float time      = iGlobalTime;
 
 /////////
 float seed = 0.;
-
 float rand() {
   return fract(sin(seed++)*43758.5453123);
 }
@@ -79,24 +78,31 @@ struct Sphere {
 // lightSourceVolume
 Sphere lightSourceVolume = Sphere(20., vec3(50., 81.6, 81.6), vec3(12.), vec3(0.), DIFF);
 
-// sphere array
+// the hard coded scene (some # of spheres)
 Sphere spheres[NUM_SPHERES];
 
 void initSpheres() {
+    float scale = 0.;
     // walls
-	spheres[0] = Sphere(1e5, vec3(-1e5+1., 40.8, 81.6),	vec3(0.), REDCOLOR, DIFF);
-	spheres[1] = Sphere(1e5, vec3( 1e5+99., 40.8, 81.6),vec3(0.), BLUECOLOR, DIFF);
-	spheres[2] = Sphere(1e5, vec3(50., 40.8, -1e5),		vec3(0.), GRAYCOLOR, DIFF);
-	//spheres[3] = Sphere(1e5, vec3(50., 40.8,  1e5+170.),vec3(0.), GRAYCOLOR, DIFF);
-	spheres[4] = Sphere(1e5, vec3(50., -1e5, 81.6),		vec3(0.), GRAYCOLOR, DIFF);
-	spheres[5] = Sphere(1e5, vec3(50.,  1e5+81.6, 81.6),vec3(0.), GRAYCOLOR, DIFF);
-    // sphere
-    // mirror sphere
-    spheres[6] = Sphere(16.5, vec3(27., 16.5, 47.), 	vec3(0.), WHITECOLOR, SPEC);
-    // glass sphere
-    spheres[7] = Sphere(16.5, vec3(73., 16.5, 78.), 	vec3(0.), WHITECOLOR, DIFF);
+    // radius, position, emissive, color，reflection
+    spheres[0] = Sphere(1e5, vec3(-1e5+01., 40.8, 81.6),vec3(0.), REDCOLOR,  DIFF); // left
+    spheres[1] = Sphere(1e5, vec3( 1e5+99., 40.8, 81.6),vec3(0.), BLUECOLOR, DIFF); // right
+    spheres[2] = Sphere(1e5, vec3(50., 40.8, -1e5),		vec3(0.), GRAYCOLOR, DIFF); // back
+    spheres[3] = Sphere(1e5, vec3(50., 40.8,  1e5+170.),vec3(0.), GRAYCOLOR, DIFF); // front
+    spheres[4] = Sphere(1e5, vec3(50., -1e5, 81.6),		vec3(0.), GRAYCOLOR, DIFF); // floor
+    spheres[5] = Sphere(1e5, vec3(50.,  1e5+81.6, 81.6),vec3(0.), GRAYCOLOR, DIFF); // ceiling
+
+    // victor
+    spheres[6] = Sphere(14., vec3(20., 33.+sin(time+0.)*scale, 50.), vec3(0.), WHITECOLOR, SPEC);
+    spheres[7] = Sphere(14., vec3(50., 33.+sin(time+1.)*scale, 50.), vec3(0.), WHITECOLOR, DIFF);
+    spheres[9] = Sphere(14., vec3(80., 33.+sin(time+2.)*scale, 50.), vec3(0.), WHITECOLOR, REFR);
+
+    // spheres
+    // spheres[6] = Sphere(16.5, vec3(27., 16.5, 47.), vec3(0.), WHITECOLOR, SPEC);
+    // spheres[7] = Sphere(16.5, vec3(73., 16.5, 78.), vec3(0.), WHITECOLOR, DIFF);
+
     // lighting sphere, id=8
-    spheres[8] = Sphere(600., vec3(50., 681.33, 81.6),	vec3(10.), WHITECOLOR, DIFF);
+    spheres[8] = Sphere(600., vec3(50., 681.33, 81.6), vec3(10.), WHITECOLOR, DIFF);
     /*(sin(time*4.)*.5+.5)*/
 }
 
@@ -332,7 +338,8 @@ void main(void) {
 	vec2 uv = 2. * gl_FragCoord.xy / resolution.xy - 1.;
     // Set up camera coordinates
 	vec3 camPos = vec3((2. * (mouse.xy==vec2(0.0)?.5*resolution.xy:mouse.xy*resolution.xy) / resolution.xy - 1.) * vec2(48., 40.) + vec2(50., 40.8), 169.);
-    camPos = vec3(50,40,180);
+    // camPos = vec3(50,40,180);
+    camPos = vec3(50,40,160);
 	vec3 cz = normalize(vec3(50., 40., 81.6) - camPos);
 	vec3 cx = vec3(1., 0., 0.);
 	vec3 cy = normalize(cross(cx, cz)); cx = cross(cz, cy);
