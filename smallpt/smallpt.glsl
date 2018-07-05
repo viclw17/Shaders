@@ -29,8 +29,8 @@ Zavie
 // #ifdef GL_ES
 // precision mediump float;
 // #endif
-#define SAMPLES 16//48
-#define MAXDEPTH 4
+#define SAMPLES 4//48
+#define MAXDEPTH 3
 
 // Not used for now
 //#define DEPTH_RUSSIAN 2
@@ -82,13 +82,13 @@ Sphere lightSourceVolume = Sphere(20., vec3(50., 81.6, 81.6), vec3(12.), vec3(0.
 Sphere spheres[NUM_SPHERES];
 
 void initSpheres() {
-    float scale = 0.;
+    float scale = 0.;//15.;
     // walls
     // radius, position, emissive, color，reflection
     spheres[0] = Sphere(1e5, vec3(-1e5+01., 40.8, 81.6),vec3(0.), REDCOLOR,  DIFF); // left
     spheres[1] = Sphere(1e5, vec3( 1e5+99., 40.8, 81.6),vec3(0.), BLUECOLOR, DIFF); // right
     spheres[2] = Sphere(1e5, vec3(50., 40.8, -1e5),		vec3(0.), GRAYCOLOR, DIFF); // back
-    spheres[3] = Sphere(1e5, vec3(50., 40.8,  1e5+170.),vec3(0.), GRAYCOLOR, DIFF); // front
+    // spheres[3] = Sphere(1e5, vec3(50., 40.8,  1e5+170.),vec3(0.), GRAYCOLOR, DIFF); // front
     spheres[4] = Sphere(1e5, vec3(50., -1e5, 81.6),		vec3(0.), GRAYCOLOR, DIFF); // floor
     spheres[5] = Sphere(1e5, vec3(50.,  1e5+81.6, 81.6),vec3(0.), GRAYCOLOR, DIFF); // ceiling
 
@@ -103,7 +103,6 @@ void initSpheres() {
 
     // lighting sphere, id=8
     spheres[8] = Sphere(600., vec3(50., 681.33, 81.6), vec3(10.), WHITECOLOR, DIFF);
-    /*(sin(time*4.)*.5+.5)*/
 }
 
 // Ray–sphere intersection
@@ -172,60 +171,44 @@ vec3 jitter(vec3 d, float phi, float sin_a, float cos_a) {
 vec3 debug_radiance(Ray r) {
     vec3 acc = vec3(0.);
 	vec3 mask = vec3(1.);
-    vec3 n;vec3 nl;vec3 d;vec3 e;vec3 l0;float cos_a_max;float cos_a;vec3 l;float sin_a;float phi;
+    vec3 x;vec3 n;vec3 nl;vec3 d;vec3 e;vec3 l0;float cos_a_max;float cos_a;vec3 l;float sin_a;float phi;
 	int id = -1; // id of intersected object, -1 is avoid
 	for (int depth = 0; depth < MAXDEPTH; ++depth) {
         // 1. do intersection
 		float t; // distance to intersection
 		Sphere obj; // the hit object
 		if ((id = scene_intersect(r, t, obj, id)) < 0) break; // if miss object
-
         // 2. surface properties
-		vec3 x = t * r.d + r.o;   // intersecting point position
+		x = t * r.d + r.o;   // intersecting point position
 		n = normalize(x - obj.p); // intersecting point normal
         //When a ray hits a glass surface, the ray tracer must determine
         //if it is entering or exiting glass to compute the refraction ray.
         nl = n * sign(-dot(n, r.d)); // properly oriented surface normal
-
-		//vec3 f = obj.c;
-		//float p = dot(f, vec3(1.2126, 0.7152, 0.0722));
-		//if (depth > DEPTH_RUSSIAN || p == 0.) if (rand() < p) f /= p; else { acc += mask * obj.e * E; break; }
-
 		if (obj.refl == DIFF) { // diffuse
             float r1 = 2.*PI*rand(); // get random angle, (0,2PI)
 			float r2 = rand();       // get random value, (0,1)
             float r2s = sqrt(r2);    // r2 sqrt, get random distance from center
 			d = jitter(nl, r1, r2s, sqrt(1. - r2));
 			e = vec3(0);
+			// Normally we would loop over the light sources and
+			// cast rays toward them, but since there is only one
+			// light source, that is mostly occluded, here goes
+			// the ad hoc optimization:
+			Sphere s = lightSourceVolume;
+			int i = 8;
+            // create random direction towards sphere using method from realistic ray tracing
+			l0 = s.p - x;
+			cos_a_max = sqrt(1. - clamp(s.r * s.r / dot(l0, l0), 0., 1.)); // cos=sqrt(1-sin^2)
+			cos_a = mix(cos_a_max, 1., rand()); // mix!
+            sin_a = sqrt(1. - cos_a*cos_a);
+            phi = 2.*PI*rand();
+			l = jitter(l0, phi, sin_a, cos_a);
 
-            // loop over any lights
-			//for (int i = 0; i < NUM_SPHERES; ++i)
-			// {
-				// Sphere s = sphere(i);
-				// if (dot(s.e, vec3(1.)) == 0.) continue;
-
-				// Normally we would loop over the light sources and
-				// cast rays toward them, but since there is only one
-				// light source, that is mostly occluded, here goes
-				// the ad hoc optimization:
-				Sphere s = lightSourceVolume;
-				int i = 8;
-
-                // create random direction towards sphere using method from realistic ray tracing
-				l0 = s.p - x;
-				cos_a_max = sqrt(1. - clamp(s.r * s.r / dot(l0, l0), 0., 1.)); // cos=sqrt(1-sin^2)
-				cos_a = mix(cos_a_max, 1., rand()); // mix!
-                sin_a = sqrt(1. - cos_a*cos_a);
-                phi = 2.*PI*rand();
-				l = jitter(l0, phi, sin_a, cos_a);
-
-                // Shoot shadow ray
-                // Check for occlusion with shadow ray
-				if (scene_intersect(Ray(x, l), t, s, id) == i) { // Ray(x, l), origin, direction
-					float omega = 2. * PI * (1. - cos_a_max); // Compute 1/probability with respect to solid angle
-					e += (s.e * clamp(dot(l, n),0.,1.) * omega) / PI; //Calculate lighting and add to current value
-				}
-			// }
+            // Shoot shadow ray, Check for occlusion with shadow ray
+			if (scene_intersect(Ray(x, l), t, s, id) == i) { // Ray(x, l), origin, direction
+				float omega = 2. * PI * (1. - cos_a_max); // Compute 1/probability with respect to solid angle
+				e += (s.e * clamp(dot(l, n),0.,1.) * omega) / PI; //Calculate lighting and add to current value
+			}
 			float E = 1.;//float(depth==0);
 			acc += mask * obj.e * E + mask * obj.c * e;
 			mask *= obj.c;
@@ -258,6 +241,7 @@ vec3 debug_radiance(Ray r) {
 	}
 	return acc;
     // return r.d;
+    return x;
     // return n;
     // return d;
     // return e;
@@ -337,9 +321,9 @@ void main(void) {
 	seed = 0. /*time*/ + resolution.y * gl_FragCoord.x / resolution.x + gl_FragCoord.y / resolution.y;
 	vec2 uv = 2. * gl_FragCoord.xy / resolution.xy - 1.;
     // Set up camera coordinates
-	vec3 camPos = vec3((2. * (mouse.xy==vec2(0.0)?.5*resolution.xy:mouse.xy*resolution.xy) / resolution.xy - 1.) * vec2(48., 40.) + vec2(50., 40.8), 169.);
-    // camPos = vec3(50,40,180);
-    camPos = vec3(50,40,160);
+	vec3 camPos;// = vec3((2. * (mouse.xy==vec2(0.0)?.5*resolution.xy:mouse.xy*resolution.xy) / resolution.xy - 1.) * vec2(48., 40.) + vec2(50., 40.8), 169.);
+    // camPos = vec3(50,40,180); // far
+    camPos = vec3(50,40,160); // close
 	vec3 cz = normalize(vec3(50., 40., 81.6) - camPos);
 	vec3 cx = vec3(1., 0., 0.);
 	vec3 cy = normalize(cross(cx, cz)); cx = cross(cz, cy);

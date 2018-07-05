@@ -33,7 +33,7 @@ v = np.random.uniform(0,1,2000000)
 
 
 # Init the figure
-fig = plt.figure()sta
+fig = plt.figure()
 axes = [fig.add_subplot(231),
         fig.add_subplot(232),
         fig.add_subplot(233),
@@ -45,7 +45,7 @@ axes = [fig.add_subplot(231),
 r = UniformSampling.random_spherical(u, v)
 heatmap, xedges, yedges = np.histogram2d(r[0], r[1], bins=100)
 axes[0].imshow(heatmap)
-axes[0].axis('off')
+# axes[0].axis('off')
 
 r = UniformSampling.random_rejection(u, v)
 heatmap, xedges, yedges = np.histogram2d(r[0], r[1], bins=100)

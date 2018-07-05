@@ -11,8 +11,7 @@ float rand() {
   return fract(sin(seed++)*43758.5453123);
 }
 
-vec2 random_spherical(vec2 uv)
-{
+vec2 random_spherical(vec2 uv) {
     // Correct Range [0;pi] [-pi;pi]
     float theta = uv.x * rand();
     float phi = (uv.y * rand() * 2.) - rand();
@@ -32,8 +31,7 @@ float grid(in float step, in float position, in float pixelWidth) {
     return intensity * (1.0 - (min(alternation, ALTERNATIONS - alternation) / (0.6 * ALTERNATIONS)));
 }
 
-vec3 mandelbrot(vec2 c)
-{
+vec3 mandelbrot(vec2 c) {
     const float B = 16.;
     float l = 0.0;
     vec2  z = vec2(0.0);
@@ -49,43 +47,27 @@ vec3 mandelbrot(vec2 c)
     return vec3(l/(float(iteration)));
 }
 
-/* Draw a circle at vec2 `pos` with radius `rad` and
-* color `color`.
-*/
-vec4 circle(vec2 uv, vec2 pos, float rad, vec3 color)
-{
+vec4 circle(vec2 uv, vec2 pos, float rad, vec3 color) {
 	float d = length(pos - uv) - rad;
 	float t = clamp(d, 0.0, 1.0);
 	return vec4(color, 1.0 - t);
 }
 
-void main(void)
-{
+void main() {
     // Calculate & Normalize UV coordianates
-    // vec2 uv = gl_FragCoord.xy/iResolution.xy - .5;
+    // vec2 uv = gl_FragCoord.xy/iResolution.xy - .5 -.5;
     // uv.x *= iResolution.x / iResolution.y;
-    // Shoutcut
     vec2 uv = ( gl_FragCoord.xy - .5*iResolution.xy ) / iResolution.y;
     vec4 color;
 
-    vec2 center = iResolution.xy * 0.5;
-    // center = random_spherical(uv);
-	float radius = 10.;
-    // color = mandelbrot(uv*zoomOut);
-
-    // for(int i=0; i<=5; i++)
-    // {
-    //     color = vec3(random_spherical(uv),1);
-    // }
-    // Background layer
+    uv = gl_FragCoord.xy;
+	vec2 center = vec2(sin(time)*.5+.5,cos(time)*.5+.5)*iResolution.xy;
+	float radius = .1 * iResolution.y;
 	vec4 layer1 = vec4(0);
+	vec4 layer2 = circle(uv, center, radius, vec3(1,0,0));
+    color = mix(layer1, layer2, layer2.a);
+    // color = vec4(mandelbrot(uv*zoomOut),1);
 
-	// Circle
-	vec3 red = vec3(1,0,0);
-	vec4 layer2 = circle(gl_FragCoord.xy, center, radius, red);
-
-	// Blend the two
-	color = mix(layer1, layer2, layer2.a);
 
 
 
@@ -104,6 +86,10 @@ void main(void)
 
     float   gridColor   = 0.5 * grid(1.0, locationY, pixelWidth) +
                           0.5 * grid(1.0, locationX, pixelWidth);
+
+
+
+
 
     gl_FragColor = color+vec4(0,gridColor,gridColor,1);
 }
