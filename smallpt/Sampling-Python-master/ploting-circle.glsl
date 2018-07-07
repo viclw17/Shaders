@@ -47,26 +47,34 @@ vec3 mandelbrot(vec2 c) {
     return vec3(l/(float(iteration)));
 }
 
-vec4 circle(vec2 uv, vec2 pos, float rad, vec3 color) {
-	float d = length(pos - uv) - rad;
-	float t = clamp(d, 0.0, 1.0);
-	return vec4(color, 1.0 - t);
+vec4 circle(vec2 uv, vec2 pos, float radius, vec3 color) {
+	float d = length(pos - uv) - radius;
+    // d= abs(d); // -1 is also white in color!!!
+	float t = clamp(d, 0.0, 1.0); //d<0 is clamped to 0
+    // return vec4(t);
+	return vec4(color, 1.-t); // t=0 --> inside circle
 }
+
+
 
 void main() {
     // Calculate & Normalize UV coordianates
     // vec2 uv = gl_FragCoord.xy/iResolution.xy - .5 -.5;
     // uv.x *= iResolution.x / iResolution.y;
-    vec2 uv = ( gl_FragCoord.xy - .5*iResolution.xy ) / iResolution.y;
+    // (0,1)
+    vec2 uv_normalized = ( gl_FragCoord.xy - .5*iResolution.xy ) / iResolution.y; // simplified
     vec4 color;
 
-    uv = gl_FragCoord.xy;
+    vec2 uv_raw = gl_FragCoord.xy;
 	vec2 center = vec2(sin(time)*.5+.5,cos(time)*.5+.5)*iResolution.xy;
+    center = mouse*resolution.xy;
 	float radius = .1 * iResolution.y;
 	vec4 layer1 = vec4(0);
-	vec4 layer2 = circle(uv, center, radius, vec3(1,0,0));
+	vec4 layer2 = circle(uv_raw, center, radius, vec3(1,0,0));
     color = mix(layer1, layer2, layer2.a);
-    // color = vec4(mandelbrot(uv*zoomOut),1);
+    // color += vec4(uv_normalized,0,1);
+    // color = vec4(mandelbrot(uv_normalized*zoomOut),1);
+
 
 
 

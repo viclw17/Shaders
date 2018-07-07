@@ -29,8 +29,10 @@ Zavie
 // #ifdef GL_ES
 // precision mediump float;
 // #endif
-#define SAMPLES 32//48
-#define MAXDEPTH 8
+#define SAMPLES 1
+#define MAXDEPTH 2
+// #define SAMPLES 32
+// #define MAXDEPTH 8
 
 // Not used for now
 //#define DEPTH_RUSSIAN 2
@@ -145,6 +147,8 @@ float sphere_intersect(Sphere s, Ray r) {
 }
 
 // Ray-scene intersection
+// out arguments, similar to passing by reference!!!
+// tbd
 int scene_intersect(Ray r, out float t, out Sphere s, int avoid) {
 	int id = -1;
 	t = 1e5; // draw depth
@@ -161,13 +165,16 @@ int scene_intersect(Ray r, out float t, out Sphere s, int avoid) {
 	return id;
 }
 
-// jittered/stratified sampling
-// Use normal to create orthonormal coordinate frame (w,u,v)
+// Use normal to create orthonormal coordinate frame (u,v,w)
 vec3 jitter(vec3 d, float phi, float sin_a, float cos_a) {
-	vec3 w = normalize(d);               // w, d is surface normal
+	vec3 w = normalize(d);               // w = d is surface normal, the z axis in this new orthonormal basis
+    // Remember, cross product returns a vector
+    // that is perpendicular to both input vectors
     vec3 u = normalize(cross(w.yzx, w)); // u is perpendicular to w
     vec3 v = cross(w, u);                // v is perpendicular to w and u
-    vec3 r = (u*cos(phi) + v*sin(phi)) * sin_a + w * cos_a; // r is random reflection ray
+    vec3 r = (u*cos(phi) +
+              v*sin(phi)) * sin_a +
+              w * cos_a; // r is random reflection direction
     // r1->phi, r2s->sin_a, sqrt(1.-r2)->cos_a
 	return r;
 }
@@ -175,26 +182,31 @@ vec3 jitter(vec3 d, float phi, float sin_a, float cos_a) {
 vec3 debug_radiance(Ray r) {
     vec3 acc = vec3(0.);
 	vec3 mask = vec3(1.);
-    vec3 x;vec3 n;vec3 nl;vec3 d;vec3 e;vec3 l0;float cos_a_max;float cos_a;vec3 l;float sin_a;float phi;
+    vec3 x, n, nl, d, e, l0, l;
+    float cos_a_max, cos_a, sin_a, phi;
+    float r1,r2,r2s;
+    float omega, E;
 	int id = -1; // id of intersected object, -1 is avoid
-
 	for (int depth = 0; depth < MAXDEPTH; ++depth) {
         // 1. do intersection
 		float t; // distance to intersection
 		Sphere obj; // the hit object
 		if ((id = scene_intersect(r, t, obj, id)) < 0) break; // if miss object
         // 2. surface properties
-		x = t * r.d + r.o;   // intersecting point position
+		x = t * r.d + r.o;        // intersecting point position
+        // x = x * vec3(0,0,.01);
 		n = normalize(x - obj.p); // intersecting point normal
         //When a ray hits a glass surface, the ray tracer must determine
         //if it is entering or exiting glass to compute the refraction ray.
         nl = n * sign(-dot(n, r.d)); // properly oriented surface normal
 
 		if (obj.refl == DIFF) { // diffuse
-            float r1 = 2.*PI*rand(); // get random angle, (0,2PI)
-			float r2 = rand();       // get random value, (0,1)
-            float r2s = sqrt(r2);    // r2 sqrt, get random distance from center
-			d = jitter(nl, r1, r2s, sqrt(1. - r2)); // Use normal to create orthonormal coordinate frame (w,u,v), d
+
+            r1 = 2.*PI*rand(); // get random angle, (0,2PI)
+			r2 = rand();       // get random value, (0,1)
+            r2s = sqrt(r2);    // r2 sqrt, get random distance from center
+			d = jitter(nl, r1, r2s, sqrt(1. - r2));
+
 			e = vec3(0);
 			// Normally we would loop over the light sources and
 			// cast rays toward them, but since there is only one
@@ -202,20 +214,22 @@ vec3 debug_radiance(Ray r) {
 			// the ad hoc optimization:
 			Sphere s = lightSourceVolume;
 			int i = 9;
-            // create random direction towards sphere using method from realistic ray tracing
+
 			l0 = s.p - x;
+
 			cos_a_max = sqrt(1. - clamp(s.r * s.r / dot(l0, l0), 0., 1.)); // cos=sqrt(1-sin^2)
 			cos_a = mix(cos_a_max, 1., rand()); // mix!
             sin_a = sqrt(1. - cos_a*cos_a);
             phi = 2.*PI*rand();
 			l = jitter(l0, phi, sin_a, cos_a);
+
             // Shoot shadow ray
             // Check for occlusion with shadow ray
 			if (scene_intersect(Ray(x, l), t, s, id) == i) { // Ray(x, l), origin, direction
-				float omega = 2. * PI * (1. - cos_a_max); // Compute 1/probability with respect to solid angle
+				omega = 2. * PI * (1. - cos_a_max); // Compute 1/probability with respect to solid angle
 				e += (s.e * clamp(dot(l, n),0.,1.) * omega) / PI; //Calculate lighting and add to current value
 			}
-			float E = 1.;//float(depth==0);
+			E = 1.;//float(depth==0);
 			acc += mask * obj.e * E + mask * obj.c * e;
 			mask *= obj.c;
 			r = Ray(x, d);
@@ -246,14 +260,19 @@ vec3 debug_radiance(Ray r) {
 		}
 	}
 	return acc;
-    return mask;
-    // return r.d;
-    return x;
-    // return n;
+    // return mask;
+    // return x;
+    // return n; // surface normal
     // return nl;
     // return d;
     // return e;
     // return vec3(cos_a_max);
+    // return vec3(cos_a);
+    // return vec3(sin_a);
+    // return vec3(phi);
+    // return l;
+    // return vec3(omega);
+    // return r.d;
 }
 
 vec3 radiance(Ray r) {
@@ -324,22 +343,32 @@ vec3 radiance(Ray r) {
 	return acc;
 }
 
+// for(pixels)
 void main(void) {
 	initSpheres();
-	seed =time + resolution.y * gl_FragCoord.x / resolution.x + gl_FragCoord.y / resolution.y;
-    seed = 0.;
+    // random seed
+	// seed = time + resolution.y * gl_FragCoord.x / resolution.x + gl_FragCoord.y / resolution.y;
+    seed = resolution.y * gl_FragCoord.x / resolution.x + gl_FragCoord.y / resolution.y;
+    // seed = time;
 
 	vec2 uv = 2. * gl_FragCoord.xy / resolution.xy - 1.;
+
     // Set up camera coordinates
-	vec3 camPos = vec3((2. * (mouse.xy==vec2(0.0)?.5*resolution.xy:mouse.xy*resolution.xy) / resolution.xy - 1.) * vec2(48., 40.) + vec2(50., 40.8), 169.);
+	vec3 camPos;
+    // camPos = vec3((2. * (mouse.xy==vec2(0.0)?.5*resolution.xy:mouse.xy*resolution.xy) / resolution.xy - 1.) * vec2(48., 40.) + vec2(50., 40.8), 169.);
+    camPos = vec3(
+        (( (mouse.xy==vec2(0.0)) ? (.5*resolution.xy) : (mouse.xy*resolution.xy) )
+        / resolution.xy *2.-1.) * vec2(48., 40.) + vec2(50., 40.8), 150.);
+        // left-right, up-down, in-out
     // camPos = vec3(50,40,180);
-    // camPos = vec3(50,40,160);
+    camPos = vec3(50,40,160);
 	vec3 cz = normalize(vec3(50., 40., 81.6) - camPos);
 	vec3 cx = vec3(1., 0., 0.);
 	vec3 cy = normalize(cross(cx, cz)); cx = cross(cz, cy);
 
 	vec3 color = vec3(0.);
     Ray ray;
+    // for(num_samples)
 	for (int i = 0; i < SAMPLES; ++i)
     {
         ray = Ray(camPos, normalize(.53135 * (resolution.x/resolution.y*uv.x * cx + uv.y * cy) + cz));
@@ -347,5 +376,6 @@ void main(void) {
         color += debug_radiance(ray);
     }
 	gl_FragColor = vec4(pow(clamp(color/float(SAMPLES), 0., 1.), vec3(1./2.2)), 1.);
+    // clamp(color/float(SAMPLES), 0., 1.) --> result /= num_samples // box filter
     // gl_FragColor = vec4(vec3(rand()),1); // noise
 }
