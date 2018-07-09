@@ -29,8 +29,8 @@ Zavie
 // #ifdef GL_ES
 // precision mediump float;
 // #endif
-#define SAMPLES 1
-#define MAXDEPTH 3
+#define SAMPLES 2
+#define MAXDEPTH 2
 // #define SAMPLES 32
 // #define MAXDEPTH 8
 
@@ -168,9 +168,7 @@ int scene_intersect(Ray r, out float t, out Sphere s, int avoid) {
 // Use normal to create orthonormal coordinate frame (u,v,w)
 vec3 jitter(vec3 d, float phi, float sin_a, float cos_a) {
 	vec3 w = normalize(d);               // w = d is surface normal, the z axis in this new orthonormal basis
-    // Remember, cross product returns a vector
-    // that is perpendicular to both input vectors
-    vec3 u = normalize(cross(w.yzx, w)); // u is perpendicular to w ???
+    vec3 u = normalize(cross(w.yzx, w.xyz)); // u is perpendicular to w ???
     vec3 v = cross(w, u);                // v is perpendicular to w and u
     vec3 r = (u*cos(phi) +
               v*sin(phi)) * sin_a +

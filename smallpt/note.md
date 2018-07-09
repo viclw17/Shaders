@@ -111,32 +111,6 @@ _[Source](https://support.solidangle.com/display/A5AFHUG/Sampling)_
 <img src="https://support.solidangle.com/download/attachments/35457925/image2013-11-29%2011%3A7%3A24.png?version=1&modificationDate=1385719338000&api=v2" width="480"  style="display:block; margin:auto;">
 
 # Path Tracing
-## The Rendering Equation
-The physical basis for the rendering equation is the **law of conservation of energy**. Assuming that L denotes radiance, we have that at each particular position and direction, the outgoing light (Lo) is the sum of the emitted light (Le) and the reflected light. The reflected light itself is the sum from all directions of the incoming light (Li) multiplied by the surface reflection and cosine of the incident angle.
-
-_[Source](https://blog.demofox.org/2016/09/21/path-tracing-getting-started-with-diffuse-and-emissive/)_
-$$L_o( \omega_o)= L_e(\omega_o)+\int_{\Omega}{f(\omega_i, \omega_o)L_i(\omega_i)(\omega_i \cdot n)\mathrm{d}\omega_i}$$
-$L_o$ - light (radiance) directed outward along direction $\omega_o$ (light received by camera)
-$\omega_o$ - the direction of the outgoing light (view direction)
-$L_e$ - light (radiance) emitted
-$\int_{\Omega }\dots \,\mathrm{d}\omega_i$ - integral over $\Omega$
-$\Omega$ - the unit hemisphere centered around $n$ containing all possible values for $\omega_i$
-$f(\omega_i, \omega_o)$ - the [bidirectional reflectance distribution function (BRDF)](https://en.wikipedia.org/wiki/Bidirectional_reflectance_distribution_function), the proportion of light reflected from $\omega_i$ to $\omega_o$
-$\omega_i$ - the [negative](https://en.wikipedia.org/wiki/Bidirectional_reflectance_distribution_function#/media/File:BRDF_Diagram.svg) direction of the incoming light
-$L_i$ - light coming inward from direction $\omega_i$
-$n$ - the surface normal
-$\omega_i\cdot n$ - the weakening factor of outward irradiance due to incident angle $\cos \theta_{i}$ ([Lambert’s Cosine Law](https://en.wikipedia.org/wiki/Lambert%27s_cosine_law))
-
-This is a simplified equation, here is the a more extended explanation:
-
-<img src="https://pbs.twimg.com/media/CHW_bGCUwAAIS1r.png" width="640" style="display:block; margin:auto;">
-<div style="text-align:center">
-<a href="https://twitter.com/levork/status/609603797258600448">click for source</a>
-</div>
-<br>
-
----
-
 The integral (the $\int_{\Omega}$ at the front and the $\mathrm{d}\omega_i$ at the back) just means that we are going to take the result of everything between those two symbols, and **add them up for every point in a hemisphere**, multiplying each value by the fractional size of the point’s area for the hemisphere. The hemisphere we are talking about is the positive hemisphere surrounding the normal of the surface we are looking at.
 
 One of the reasons things get harder at this point is that there are an infinite number of points on the hemisphere.
