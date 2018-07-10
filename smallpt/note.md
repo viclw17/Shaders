@@ -110,6 +110,26 @@ This generates samples weighted more heavily towards the **normal**
 _[Source](https://support.solidangle.com/display/A5AFHUG/Sampling)_
 <img src="https://support.solidangle.com/download/attachments/35457925/image2013-11-29%2011%3A7%3A24.png?version=1&modificationDate=1385719338000&api=v2" width="480"  style="display:block; margin:auto;">
 
+---
+"Sampling on a shape" means picking a random point inside that shape. Generally you want to do this so that the random points you pick are, on average, spread evenly over the area or volume of the shape, so that no part of the shape is more likely to have a point picked inside of it.
+
+Sampling is done when you want to estimate something that you can't calculate exactly. Basically it means "do it a bunch of times and look at the average".
+
+It's like if you wanted to know the average sunlight in your garden. You can't know the exact answer, but you could still measure the sun in a bunch of places around the yard, and take the average of your measurements. But you don't want to bias your estimate, for example, by taking more measurements under the shade of a tree or a trellis, and fewer in the sunshine of your lawn-- this would skew the average. So you try and take your measurements evenly around the yard.
+
+One way you could do this is by taking measurements exactly one foot apart. That would be pretty good (much better than measuring only once, say, by the birdbath), but imagine now that you have a trellis over your patio, and the slats are exactly one foot apart. If your first measurement is in shade, the so will the second one, and the third, and so on. Even if the patio is in 80% sun, by mistake you put all your patio measurements in the shade of a slat (because the spacing of your measurements lines up with the spacing of the slats), and so would wrongly conclude that your patio is completely shadowed.
+
+That's why you would want to add randomness to your sample positions-- You want to eliminate the possibility that your measurements line up with any meaningful patterns and cancel them out or exaggerate them. So you want a pattern that is random, but evenly distributed. If your yard was a rectangle, then you would want to choose your measurement locations by "sampling on the rectangle". If your yard was a circle, then you would choose by "sampling on the circle".
+
+This example-- figuring out the fraction of a region in shadow-- is directly analogous to the calculations necessary to compute lighting in a physically-based render.
+
+---
+
+
+
+
+
+
 # Path Tracing
 The integral (the $\int_{\Omega}$ at the front and the $\mathrm{d}\omega_i$ at the back) just means that we are going to take the result of everything between those two symbols, and **add them up for every point in a hemisphere**, multiplying each value by the fractional size of the point’s area for the hemisphere. The hemisphere we are talking about is the positive hemisphere surrounding the normal of the surface we are looking at.
 

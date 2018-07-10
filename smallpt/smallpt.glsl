@@ -29,10 +29,10 @@ Zavie
 // #ifdef GL_ES
 // precision mediump float;
 // #endif
-#define SAMPLES 2
-#define MAXDEPTH 2
-// #define SAMPLES 32
-// #define MAXDEPTH 8
+// #define SAMPLES 2
+// #define MAXDEPTH 2
+#define SAMPLES 8
+#define MAXDEPTH 4
 
 // Not used for now
 //#define DEPTH_RUSSIAN 2
@@ -60,9 +60,10 @@ float time      = iGlobalTime;
 
 /////////
 float seed = 0.;
-float rand() {
-  return fract(sin(seed++)*43758.5453123);
-}
+float rand() {return fract(sin(seed++)*43758.5453123);}
+float hash1() {return fract(sin(seed += 1.0)*43758.5453123);}
+vec2 hash2() {return fract(sin(vec2(seed,seed+=1.0))*vec2(43758.5453123,22578.1459123));}
+vec3 hash3() {return fract(sin(vec3(seed,seed+=1.0,seed+=2.0))*vec3(43758.5453123,22578.1459123,19642.3490423));}
 
 struct Ray {
   vec3 o, d; // origin, direction
@@ -165,14 +166,58 @@ int scene_intersect(Ray r, out float t, out Sphere s, int avoid) {
 	return id;
 }
 
+//-----------------------------------------------------
+// scene
+//-----------------------------------------------------
+vec3 cosWeightedRandomHemisphereDirection( const vec3 n ) {
+    vec2 r = hash2();
+
+    vec3  uu = normalize( cross( n, vec3(0.0,1.0,1.0) ) );
+    vec3  vv = cross( uu, n );
+
+    float ra = sqrt(r.y);
+    float rx = ra*cos(6.2831*r.x);
+    float ry = ra*sin(6.2831*r.x);
+    float rz = sqrt( 1.0-r.y );
+    vec3  rr = vec3( rx*uu + ry*vv + rz*n );
+
+    return normalize( rr );
+}
+
+vec3 randomSphereDirection() {
+    vec2 r = hash2()*6.2831;
+    vec3 dr=vec3(sin(r.x)*vec2(sin(r.y),cos(r.y)),cos(r.x));
+    return dr;
+}
+
+vec3 randomHemisphereDirection( const vec3 n ) {
+    vec3 dr = randomSphereDirection();
+    return dot(dr,n) * dr;
+}
+
 // Use normal to create orthonormal coordinate frame (u,v,w)
 vec3 jitter(vec3 d, float phi, float sin_a, float cos_a) {
-	vec3 w = normalize(d);               // w = d is surface normal, the z axis in this new orthonormal basis
-    vec3 u = normalize(cross(w.yzx, w.xyz)); // u is perpendicular to w ???
-    vec3 v = cross(w, u);                // v is perpendicular to w and u
+	vec3 w,u,v;
+
+    w = normalize(d);               // w = d is surface normal, the z axis in this new orthonormal basis, left-hand, x-right/y-up/z-out
+    u = normalize(cross(w.zyx, w)); // u is perpendicular to w
+    // u = normalize(cross(w,abs(w.x)>.1?vec3(0,1,0):vec3(1))); // smallpt
+    v = cross(w, u);                // v is perpendicular to w and u
+
+    // Pete Shirley's Graphics Blog
+    // http://psgraphics.blogspot.com/2014/11/making-orthonormal-basis-from-unit.html
+    // if(w.z < -0.99999){
+    //     u = vec3(0,-1,0);
+    //     v = vec3(-1,0,0);}
+    // w = normalize(d);
+    // float a = 1./(1.+w.z);
+    // float b = -w.x+w.y*a;
+    // u = normalize(vec3(1.-w.x*w.x*a, b, -w.x));
+    // v = normalize(vec3(b, 1.-w.y*w.y*a, -w.y));
+
     vec3 r = (u*cos(phi) +
               v*sin(phi)) * sin_a +
-              w * cos_a; // r is random reflection direction
+              w*cos_a; // r is random reflection direction
     // r1->phi, r2s->sin_a, sqrt(1.-r2)->cos_a
 	return r;
 }
@@ -216,6 +261,7 @@ vec3 debug_radiance(Ray r) {
 			cos_a = mix(cos_a_max, 1., rand()); // mix!
             sin_a = sqrt(1. - cos_a*cos_a);
 			l = jitter(l0, phi, sin_a, cos_a);
+            l = cosWeightedRandomHemisphereDirection(l0); // test
 
             // Shoot shadow ray
             // Check for occlusion with shadow ray
@@ -232,7 +278,8 @@ vec3 debug_radiance(Ray r) {
 			r2 = rand();       // get random value, (0,1)
             r2s = sqrt(r2);    // r2 sqrt, get random distance from center
 			d = jitter(nl, r1, r2s, sqrt(1. - r2));
-            // d = vec3(0,0,0);
+            d = cosWeightedRandomHemisphereDirection(nl); // test
+            // d = vec3(0,0,0); // test
 			r = Ray(x, d); // new ray
 
 		} else if (obj.refl == SPEC) {
@@ -348,7 +395,7 @@ vec3 radiance(Ray r) {
 // for(pixels)
 void main(void) {
 	initSpheres();
-    // random seed
+
 	// seed = time + resolution.y * gl_FragCoord.x / resolution.x + gl_FragCoord.y / resolution.y;
     seed = resolution.y * gl_FragCoord.x / resolution.x + gl_FragCoord.y / resolution.y;
     // seed = time;
@@ -357,24 +404,19 @@ void main(void) {
     // centralize uv: 2. * gl_FragCoord.xy / resolution.xy - 1 (-1~1,-1~1)
 	vec2 uv;
     uv = 2. * gl_FragCoord.xy / resolution.xy - 1.;
-    // uv = ( gl_FragCoord.xy - .5*resolution.xy ) / iResolution.y;
-
 
     // Set up camera coordinates
 	vec3 camPos; // left-right, up-down, in-out
-    // camPos =
-    // vec3((2. * (mouse.xy==vec2(0.0)?.5*resolution.xy:mouse.xy*resolution.xy) / resolution.xy - 1.) * vec2(48., 40.) + vec2(50., 40.8), 169.);
-    // camPos =
-    // vec3(((2.*(mouse.xy==vec2(0.0) ? .5*resolution.xy : mouse.xy*resolution.xy))
-    // / resolution.xy-1.) * vec2(48., 40.) + vec2(50., 40.8), 169.);
+    camPos =  vec3((2. * (mouse.xy==vec2(0.0)?.5*resolution.xy:mouse.xy*resolution.xy) / resolution.xy - 1.) * vec2(48., 40.) + vec2(50., 40.8), 169.);
     // camPos = vec3(50,40,180);
-    camPos = vec3(50,40,160);
+    // camPos = vec3(50,40,160);
     // Calculate the camera’s forward direction by normalizing (Target – Eye)
     vec3 target;
-    target = camPos - vec3(0,0,8);
+    target = camPos - vec3(0,0,1);
 	vec3 cz = normalize(target - camPos);
+    cz = normalize(vec3(50., 40., 81.6) - camPos); // old
     // camera’s right vector
-	vec3 cx = vec3(1,0,0);
+	vec3 cx = vec3(1.,0.,0.);
     // camera’s up vector
 	vec3 cy = normalize(cross(cx, cz));
     // cx = cross(cz, cy);
@@ -389,13 +431,13 @@ void main(void) {
         ray = Ray(
             camPos,
             normalize(.53135 * (uv.x*cx*ratio + uv.y*cy) + cz));
-		// color += radiance(ray);
+        // color += radiance(ray);
         color += debug_radiance(ray);
     }
      color = color/float(SAMPLES); // result /= num_samples // box filter
 
-	gl_FragColor = vec4(pow(clamp(color, 0., 1.), vec3(1./2.2)), 1.);
-    // gl_FragColor = vec4(color,1);
+	gl_FragColor = vec4(pow(clamp(color, 0., 1.), vec3(1./2.2)), 1.); // gamma
+    // gl_FragColor = vec4(color,1); // pure color
     // gl_FragColor = vec4(vec3(rand()),1); // noise
-    // gl_FragColor = vec4(uv,0,1);
+    // gl_FragColor = vec4(uv,0,1); // uv
 }
