@@ -1,35 +1,38 @@
-// Constants
-#define PI 3.14159265359
-#define SUB_SAMPLES 5
-#define EPSILON 1e-4
-#define RAY_EPSILON 1e-3
-#define MAX_DEPTH 4
-#define GAMMA 2.2
-
-#define DIFF 0
-#define SPEC 1
-#define REFR 2
-
 vec2 resolution = iResolution;
 vec2 mouse      = iMouse;
 float time      = iGlobalTime;
 
-struct Ray{vec3 origin; vec3 dir;};
+#define PI 3.14159265359
+#define SUB_SAMPLES 8
+#define EPSILON 1e-4
+#define RAY_EPSILON 1e-3
+#define MAX_DEPTH 4
+#define GAMMA 2.2
+#define DIFF 0
+#define SPEC 1
+#define REFR 2
+
+struct Ray{
+    vec3 origin;
+    vec3 dir;
+};
 struct Material{
     int refl;
     vec3 emission;
     vec3 color;
-    float ior;};
+    float ior;
+};
 struct Sphere{
     float radius;
     vec3 pos;
-    Material mat;};
+    Material mat;
+};
 struct Plane{
     vec3 pos;
     vec3 normal;
-    Material mat;};
+    Material mat;
+};
 
-// Util functions
 float seed = 0.;
 float rand() { return fract(sin(seed++)*43758.5453123); }
 
@@ -43,19 +46,15 @@ vec3 cosWeightedSampleHemisphere(vec3 n){
     float y = r * sin(theta);
     float z = sqrt(max(0., 1. - u1));
 
-    // ?
     vec3 a = n, b;
-
     if (abs(a.x) <= abs(a.y) && abs(a.x) <= abs(a.z))
 		a.x = 1.0;
 	else if (abs(a.y) <= abs(a.x) && abs(a.y) <= abs(a.z))
 		a.y = 1.0;
 	else
 		a.z = 1.0;
-
     a = normalize(cross(n, a));
     b = normalize(cross(n, a));
-
     return normalize(a * x + b * y + n * z);
 }
 
@@ -83,15 +82,15 @@ vec3 CosineSampleHemisphere()
 Sphere spheres[NUM_SPHERES];
 Plane planes[NUM_PLANES];
 void initScene() {
-    spheres[0] = Sphere(16.5, vec3(27,16.5,47), Material(DIFF, vec3(0.), vec3(1.), 0.));
-    spheres[1] = Sphere(16.5, vec3(73, 16.5, 78), Material(DIFF, vec3(0.), vec3(.75, 1., .75), 1.5));
+    spheres[0] = Sphere(16.5, vec3(27, 16.5, 47),  Material(DIFF, vec3(0.), vec3(1.), 0.));
+    spheres[1] = Sphere(16.5, vec3(73, 16.5, 78),  Material(DIFF, vec3(0.), vec3(.75, 1., .75), 1.5));
     spheres[2] = Sphere(600., vec3(50, 689.3, 50), Material(DIFF, vec3(6.), vec3(0.), 0.));
-	planes[0] = Plane(vec3(0, 0, 0), vec3(0, 1, 0), Material(DIFF, vec3(0.), vec3(.75), 0.));
-    planes[1] = Plane(vec3(-7, 0, 0), vec3(1, 0, 0), Material(DIFF, vec3(0.), vec3(.75, .25, .25), 0.));
-    planes[2] = Plane(vec3(0, 0, 0), vec3(0, 0, -1), Material(DIFF, vec3(0.), vec3(.75), 0.));
+	planes[0] = Plane(vec3(0, 0, 0),   vec3(0, 1, 0),  Material(DIFF, vec3(0.), vec3(.75), 0.));
+    planes[1] = Plane(vec3(-7, 0, 0),  vec3(1, 0, 0),  Material(DIFF, vec3(0.), vec3(.75, .25, .25), 0.));
+    planes[2] = Plane(vec3(0, 0, 0),   vec3(0, 0, -1), Material(DIFF, vec3(0.), vec3(.75), 0.));
     planes[3] = Plane(vec3(107, 0, 0), vec3(-1, 0, 0), Material(DIFF, vec3(0.), vec3(.25, .25, .75), 0.));
-    planes[4] = Plane(vec3(0, 0, 180), vec3(0, 0, 1), Material(DIFF, vec3(0.), vec3(0.), 0.));
-    planes[5] = Plane(vec3(0, 90, 0), vec3(0, -1, 0), Material(DIFF, vec3(0.), vec3(.75), 0.));
+    planes[4] = Plane(vec3(0, 0, 180), vec3(0, 0, 1),  Material(DIFF, vec3(0.), vec3(0.), 0.));
+    planes[5] = Plane(vec3(0, 90, 0),  vec3(0, -1, 0), Material(DIFF, vec3(0.), vec3(.75), 0.));
 }
 
 vec3 background(vec3 dir) {
