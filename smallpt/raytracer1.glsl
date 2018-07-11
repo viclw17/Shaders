@@ -1,13 +1,5 @@
-  // original code by Reinder Nijhoff 2014
+// original code by Reinder Nijhoff 2014
 // https://www.shadertoy.com/view/4tl3z4
-
-//#version 150
-//#version 300 es
-//out vec4 fragColor;
-
-#ifdef GL_ES
-precision mediump float;
-#endif
 
 // the shader book
 // uniform vec2     u_resolution;   // Canvas size (width,height)
@@ -31,8 +23,8 @@ float time      = iGlobalTime;
 const float pi = 3.141592653589793;
 
 #define eps 0.0001
-#define EYEPATHLENGTH 3
-#define SAMPLES 3
+#define EYEPATHLENGTH 5
+#define SAMPLES 5
 
 #define LIGHTCOLOR vec3(16.86, 10.76, 8.2)*1.3
 #define WHITECOLOR vec3(.7295, .7355, .729)*0.7
@@ -40,24 +32,13 @@ const float pi = 3.141592653589793;
 #define REDCOLOR vec3(.611, .0555, .062)*0.7
 
 float seed = 0.0;
-
-float hash1() {
-    return fract(sin(seed += 1.0)*43758.5453123);
-}
-
-vec2 hash2() {
-    return fract(sin(vec2(seed,seed+=1.0))*vec2(43758.5453123,22578.1459123));
-}
-
-vec3 hash3() {
-    return fract(sin(vec3(seed,seed+=1.0,seed+=2.0))*vec3(43758.5453123,22578.1459123,19642.3490423));
-}
+float hash1() {return fract(sin(seed += 1.0)*43758.5453123);}
+vec2 hash2() {return fract(sin(vec2(seed,seed+=1.0))*vec2(43758.5453123,22578.1459123));}
+vec3 hash3() {return fract(sin(vec3(seed,seed+=1.0,seed+=2.0))*vec3(43758.5453123,22578.1459123,19642.3490423));}
 
 //-----------------------------------------------------
 // Intersection functions (by iq)
 //-----------------------------------------------------
-
-// normal?
 vec3 nSphere( in vec3 pos, in vec4 sph ) {
     return (pos-sph.xyz)/sph.w;
 }
@@ -82,19 +63,17 @@ float iPlane( in vec3 ro, in vec3 rd, in vec4 pla ) {
 //-----------------------------------------------------
 // scene
 //-----------------------------------------------------
-
 vec3 cosWeightedRandomHemisphereDirection( const vec3 n ) {
     vec2 r = hash2();
-
+    // build orthonormal basis
     vec3  uu = normalize( cross( n, vec3(0.0,1.0,1.0) ) );
     vec3  vv = cross( uu, n );
-
+    // build random ray
     float ra = sqrt(r.y);
     float rx = ra*cos(6.2831*r.x);
     float ry = ra*sin(6.2831*r.x);
     float rz = sqrt( 1.0-r.y );
     vec3  rr = vec3( rx*uu + ry*vv + rz*n );
-
     return normalize( rr );
 }
 
@@ -112,15 +91,12 @@ vec3 randomHemisphereDirection( const vec3 n ) {
 //-----------------------------------------------------
 // light
 //-----------------------------------------------------
+vec4 lightSphere; // xyz-position, z-radius
 
-//vec4 lightSphere;
-vec4 lightSphere;// =  vec4(2.7,6,4,1.);
-
-// xyz-position, z-radius
 // initialize light sphere
 void initLightSphere( float time ) {
-   // lightSphere = vec4(2.7,6,4,1.);
-   lightSphere = vec4( 2.*sin(time)+3.,3.,2.*cos(time)+3., .5 );
+   lightSphere = vec4(2.7,6,4,1.);
+   // lightSphere = vec4( 2.*sin(time)+3.,3.,2.*cos(time)+3., .5 );
    // lightSphere = vec4( 3.0+2.*sin(time),2.8+2.*sin(time*0.9),3.0+4.*cos(time*0.7), .5 );
 }
 
@@ -132,7 +108,6 @@ vec3 sampleLight( const in vec3 ro ) {
 //-----------------------------------------------------
 // scene
 //-----------------------------------------------------
-
 vec2 intersect( in vec3 ro, in vec3 rd, inout vec3 normal ) {
     vec2 res = vec2( 1e20, -1.0 );
     float t;
@@ -243,7 +218,6 @@ vec3 getBRDFRay( const in vec3 n, const in vec3 rd, const in float m, inout bool
 //-----------------------------------------------------
 // eyepath
 //-----------------------------------------------------
-
 vec3 traceEyePath( in vec3 ro, in vec3 rd, const in bool directLightSampling ) {
     vec3 tcol = vec3(0.);
     vec3 fcol  = vec3(1.);
@@ -296,12 +270,11 @@ void main( void ) {
     //-----------------------------------------------------
     // camera
     //-----------------------------------------------------
-
     // normalize the coordinate of the fragment by dividing it by the total resolution
     vec2 p = -1.0 + 2.0 * (gl_FragCoord.xy) / resolution.xy;
     p.x *= resolution.x/resolution.y;
 
-    seed = p.x + p.y * 3.43121412313 + fract(1.12345314312*time);
+    seed = p.x + p.y * 3.43121412313 + fract(1.12345314312/*time*/);
 
     vec3 ro = vec3(2.78, 2.73, -8.00); //position(ray origin?)
     vec3 ta = vec3(2.78, 2.73,  0.00); //target
@@ -329,17 +302,8 @@ void main( void ) {
         tot += col;
     }
 
-    // adjust
+    // post processing
     tot /= float(SAMPLES);
     tot = pow( clamp(tot,0.0,1.0), vec3(0.45) );
-
     gl_FragColor = vec4( tot, 1.0 );
-
-    // test noise
-    // float h = hash1();
-    // vec2 h2 = hash2();
-    // vec3 h3 = hash3();
-    // gl_FragColor = vec4( h,h,h, 1.0 );
-    // gl_FragColor = vec4( h2,1, 1.0 );
-    // gl_FragColor = vec4( h3, 1.0 );
 }

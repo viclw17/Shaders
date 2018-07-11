@@ -29,10 +29,10 @@ Zavie
 // #ifdef GL_ES
 // precision mediump float;
 // #endif
-// #define SAMPLES 2
-// #define MAXDEPTH 2
-#define SAMPLES 8
-#define MAXDEPTH 4
+#define SAMPLES 2
+#define MAXDEPTH 2
+// #define SAMPLES 8
+// #define MAXDEPTH 4
 
 // Not used for now
 //#define DEPTH_RUSSIAN 2
