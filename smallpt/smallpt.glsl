@@ -370,6 +370,7 @@ vec3 radiance(Ray r) {
 			acc += mask * obj.e * E + mask * obj.c * e;
 			mask *= obj.c;
 			r = Ray(x, d);
+
 		} else if (obj.refl == SPEC) {
 			acc += mask * obj.e;
 			mask *= obj.c;
@@ -434,7 +435,7 @@ void main(void) {
         // color += radiance(ray);
         color += debug_radiance(ray);
     }
-     color = color/float(SAMPLES); // result /= num_samples // box filter
+    color = color/float(SAMPLES); // result /= num_samples // box filter
 
 	gl_FragColor = vec4(pow(clamp(color, 0., 1.), vec3(1./2.2)), 1.); // gamma
     // gl_FragColor = vec4(color,1); // pure color

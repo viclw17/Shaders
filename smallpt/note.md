@@ -111,6 +111,7 @@ _[Source](https://support.solidangle.com/display/A5AFHUG/Sampling)_
 <img src="https://support.solidangle.com/download/attachments/35457925/image2013-11-29%2011%3A7%3A24.png?version=1&modificationDate=1385719338000&api=v2" width="480"  style="display:block; margin:auto;">
 
 ---
+# Reddit
 "Sampling on a shape" means picking a random point inside that shape. Generally you want to do this so that the random points you pick are, on average, spread evenly over the area or volume of the shape, so that no part of the shape is more likely to have a point picked inside of it.
 
 Sampling is done when you want to estimate something that you can't calculate exactly. Basically it means "do it a bunch of times and look at the average".
