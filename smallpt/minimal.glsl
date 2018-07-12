@@ -106,18 +106,18 @@ vec3 background(vec3 dir) {
     return vec3(0.);
 }
 
-// 检测光线与圆相交
+
 float intersectSphere(Ray r, Sphere s) {
     vec3 op = r.origin - s.pos;
     float b = dot(op, r.dir);
 
     float delta = b * b - dot(op, op) + s.radius * s.radius;
-	if (delta < 0.)           // 光线与球体未相交
+	if (delta < 0.)
         return 0.;
-    else                      // 光线与球体相交
+    else
         delta = sqrt(delta);
 
-    float t;                  // 找到t最小的交点
+    float t; // get the minimal t
     if ((t = -b - delta) > EPSILON)
         return t;
     else if ((t = -b + delta) > EPSILON)
