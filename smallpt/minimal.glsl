@@ -85,12 +85,12 @@ void initScene() {
     spheres[0] = Sphere(16.5, vec3(27, 16.5, 47),  Material(DIFF, vec3(0.), vec3(1.), 0.));
     spheres[1] = Sphere(16.5, vec3(73, 16.5, 78),  Material(DIFF, vec3(0.), vec3(.75, 1., .75), 1.5));
     spheres[2] = Sphere(600., vec3(50, 689.3, 50), Material(DIFF, vec3(6.), vec3(0.), 0.));
-	planes[0] = Plane(vec3(0, 0, 0),   vec3(0, 1, 0),  Material(DIFF, vec3(0.), vec3(.75), 0.));
-    planes[1] = Plane(vec3(-7, 0, 0),  vec3(1, 0, 0),  Material(DIFF, vec3(0.), vec3(.75, .25, .25), 0.));
-    planes[2] = Plane(vec3(0, 0, 0),   vec3(0, 0, -1), Material(DIFF, vec3(0.), vec3(.75), 0.));
-    planes[3] = Plane(vec3(107, 0, 0), vec3(-1, 0, 0), Material(DIFF, vec3(0.), vec3(.25, .25, .75), 0.));
-    planes[4] = Plane(vec3(0, 0, 180), vec3(0, 0, 1),  Material(DIFF, vec3(0.), vec3(0.), 0.));
-    planes[5] = Plane(vec3(0, 90, 0),  vec3(0, -1, 0), Material(DIFF, vec3(0.), vec3(.75), 0.));
+	planes[0]  = Plane(vec3(0, 0, 0),   vec3(0, 1, 0),  Material(DIFF, vec3(0.), vec3(.75), 0.));
+    planes[1]  = Plane(vec3(-7, 0, 0),  vec3(1, 0, 0),  Material(DIFF, vec3(0.), vec3(.75, .25, .25), 0.));
+    planes[2]  = Plane(vec3(0, 0, 0),   vec3(0, 0, -1), Material(DIFF, vec3(0.), vec3(.75), 0.));
+    planes[3]  = Plane(vec3(107, 0, 0), vec3(-1, 0, 0), Material(DIFF, vec3(0.), vec3(.25, .25, .75), 0.));
+    planes[4]  = Plane(vec3(0, 0, 180), vec3(0, 0, 1),  Material(DIFF, vec3(0.), vec3(0.), 0.));
+    planes[5]  = Plane(vec3(0, 90, 0),  vec3(0, -1, 0), Material(DIFF, vec3(0.), vec3(.75), 0.));
 
     // spheres[3] = Sphere(1e5, vec3(-1e5+01., 40.8, 81.6),Material(DIFF, vec3(0.), vec3(.75), 0.)); // left
     // spheres[4] = Sphere(1e5, vec3( 1e5+99., 40.8, 81.6),Material(DIFF, vec3(0.), vec3(.75), 0.)); // right
