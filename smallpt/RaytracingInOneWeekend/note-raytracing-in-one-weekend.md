@@ -1,7 +1,12 @@
 # Chapter 0: Overview
 ## [问题一：CodeBlocks环境搭建及创建第一个C++程序](https://blog.csdn.net/libing_zeng/article/details/54410627)
 Windows
+
 Run command line ```g++ main.cpp``` in Cygwin, and this output a ```a.exe``` file. Run the file with ```./a.exe``` and this generate the final file ```test.ppm```. File can be opened with **File Viewer Plus**.
+
+Mac
+
+```a.out``` is generated instead.
 
 # Chapter 1: Output an image
 ## 问题二：用C++输出第一张图片
