@@ -57,8 +57,8 @@ char const *pContent;
 const char* const pContent;
 ```
 >tips：
-const在*左边表示const修饰的是指针p指向的内容；
-const在*右边表示const修饰的是指针p；
+const在```*```左边表示const修饰的是指针p指向的内容；
+const在```*```右边表示const修饰的是指针p；
 
 It also works with pointers but one has to be careful where ‘const’ is put as that determines whether the pointer or what it points to is constant. For example,
 
@@ -193,6 +193,11 @@ where the 5 uses ‘const’ respectively mean that the variable pointed to by t
     - const常量会在内存中分配(可以是堆中也可以是栈中)。
 
 ## 问题六：C++中&是干嘛用的（引用类型）
+https://blog.csdn.net/libing_zeng/article/details/54412728
+>顺便说一下：```int *pi1```，```int* pi1```，```int * pi1```是等价的。也就是说 ```*``` 靠谁近或者之间有没有空格，并不影响功能。但是推荐使用```int *pi1```，因为考虑到一连串定义几个变量时可能出错。比如：```int *pi1, *pi2, *pi3；```而不是```int*pi1, pi2, pi3```。
+
+>同理，“&”也是一样的。```int & ri1```，```int& ri1```，```int &ri1```是等价的。推荐使用```int &ri1```
+
 When a **subroutine or function** is called with parameters, variables passed as the parameters might be read from in order to transfer data into the subroutine/function, written to in order to transfer data back to the calling program or both to do both.
 
 Some languages enable one to specify this directly, such as having ```in:, out: inout:``` parameter types, whereas in C one has to work at a lower level and specify the method for passing the variables choosing one that also allows the desired data transfer direction.
@@ -236,41 +241,132 @@ operator是C++的关键字，它和运算符一起使用，表示一个运算符
 
 ### 二、如何声明一个重载的操作符？
 #### A:  操作符重载实现为类成员函数
-重载的操作符 **在类体中被声明**，声明方式如同普通成员函数一样，只不过他的名字包含关键字operator，以及紧跟其后的一个C++预定义的操作符。可以用如下的方式来声明一个预定义的==操作符:
+重载的操作符 **在类体中被声明**，声明方式如同普通 **成员函数** 一样，只不过他的名字包含关键字```operator```，以及紧跟其后的一个C++预定义的操作符。可以用如下的方式来声明一个预定义的==操作符:
 ```c
+// 在类体中被声明
 class person{
 private:
     int age;
-    public:
-    person(int a)
-    {
-       this->age=a;
+public:
+    person(int a){ //构造函数
+       this->age = a;
     }
-   inline bool operator == (const person &ps) const;
+    // 操作符重载实现为类成员函数
+    inline bool operator == (const person &ps) const;
 };
-// 实现方式如下：
-inline bool person::operator==(const person &ps) const
-{
 
-     if (this->age==ps.age)
+// 实现方式如下：
+inline bool person::operator==(const person &ps) const{
+    if (this->age==ps.age)
         return true;
-     return false;
+    return false;
 }
+
 // 调用方式如下：
 #include<iostream>
 using namespace std;
 int main()
 {
-  person p1(10);
-  person p2(20);
-  if(p1==p2)
- cout<<”the age is equal!”< return 0;
+    person p1(10);
+    person p2(20);
+    if(p1==p2)
+        cout<<”the age is equal!”< return 0;
 }
 ```
 这里，因为operator == 是class person的一个成员函数，所以对象p1,p2都可以调用该函数，上面的if语句中，相当于p1调用函数==，把p2作为该函数的一个参数传递给该函数，从而实现了两个对象的比较。
 
-#### 
+#### B:操作符重载实现为非类成员函数(全局函数)
+对于全局重载操作符，代表左操作数的参数必须被显式指定。例如：
+```c
+#include<iostream>
+using namespace std;
+class person{
+public:
+    int age;
+public:
+    // construct with age
+    // initializer list https://www.geeksforgeeks.org/when-do-we-use-initializer-list-in-c/
+    person(int _age=0):age(_age){
+    	cout << "person(int _age)"<< endl;
+    }
+    // construct with another object
+    person(person& ps){
+    	*this = ps;
+    }
+};
+
+//类的外边
+bool operator==(person& p1, person const & p2){ //全局重载操作符==
+    if (p1.age == p2.age)
+    {
+    	return true; //满足要求
+    }
+    return false;
+}
+
+int main(){
+    person rose;
+    person jack;
+    rose.age = 18;
+    jack.age = 23;
+    if (rose == jack)
+    {
+    	cout << " is equal " << endl;
+    }
+    cout << "not equal " << endl;
+    return 0;
+}
+```
+
+#### C:如何决定把一个操作符重载为类成员函数还是全局名字空间的成员呢？
+1. 如果一个重载操作符是 **类成员**，那么只有当它的 **左操数是该类的对象** 时，该操作符才会被调用。如果该操作符的左操作数必须是其他的类型，则操作符必须被重载为全局名字空间的成员。
+2. C++要求赋值=，下标[]，调用()，和成员指向-> 操作符必须被定义为 _类成员操作符_。任何把这些操作符定义为名字空间成员的定义都会被标记为编译时刻错误。
+3. 如果有一个操作数是类类型如string类的情形那么对于对称操作符比如等于操作符最好定义为全局名字空间成员。
+
+#### D:操作符重载适用范围：
+#### E:重载运算符的限制：
+1. 只有C++预定义的操作符才可以被重载；
+2. 对于内置类型的操作符，它的预定义不能改变，即不能改变操作符原来的功能；
+3. 重载操作符不能改变他们的操作符优先级；
+4. 重载操作符不能改变操作数的个数；
+5. 除了对（）操作符外，对其他重载操作符提供缺省实参都是非法的；
+
+#### F:注意
+1. 当返回值不是本函数内定义的局部变量时就可以返回一个引用。在通常情况下，引用返回值只用在需对函数的调用重新赋值的场合，也就是对函数的返回值重新赋值的时候。
+
+（以重载赋值= 为例！）
+- 如果返回值：返回的局部对象，在赋值语句结束之后释放，函数返回时保存的临时变量为该对象；
+- 如果返回引用：返回的局部对象，在函数返回时释放，函数返回时保存的临时变量为该对象的引用(地址)；
+
+2. **在增量运算符中，放上一个整数形参，就是后增量运行符，它是值返回; 对于前增量没有形参，而且是引用返回。** 例如：
+```c
+class Test{
+public:
+    Test(int x = 3){
+    	m_value = x;
+    }
+      Test& operator++(); // 前增量没有形参, 引用返回
+      Test operator++(int); // 后增量整数形参, 值返回
+private:
+	int m_value;
+};
+
+Test& Test::operator++(){
+    m_value++;    //先增量
+    return *this; //返回当前对象
+}
+
+Test Test::operator++(int){
+    Test temp(*this);  //创建临时对象
+    m_value++;         //再增量
+    return temp;       //返回临时对象
+}
+```
 
 ## 问题八：C++中this是干嘛用的
+每个 **类成员函数** 都含有一个 **指向被调用对象的指针**，这个指针被称为this。
+- this表示被调用对象的指针；
+- *this表示被调用对象本身；
+
 ## 问题九：C++中::是干嘛用的（域解析操作符）
 ## 问题十：【总结】解决了问题四~问题九，vec3这个类的代码应该都能看懂了

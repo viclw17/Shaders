@@ -6,18 +6,28 @@ class vec3 {
 public:
     vec3() {}
     vec3(float e0, float e1, float e2) {e[0] = e0; e[1] = e1; e[2] = e2;}
-    inline float x() const {return e[0];} // //常成员函数, 它不改变对象的成员变量. 也不能调用类中任何非const成员函数。
+    inline float x() const { //常成员函数, 它不改变对象的成员变量. 也不能调用类中任何非const成员函数。
+        return e[0]; // 成员变量
+    }
     inline float y() const {return e[1];}
     inline float z() const {return e[2];}
     inline float r() const {return e[0];}
     inline float g() const {return e[1];}
     inline float b() const {return e[2];}
 
+    // 操作符重载 operator overload
+    // const（右边这个）：表示该函数不修改类对象。
+    // const（左边这个）：表示函数返回不可被修改，此处表示返回的vec3对象的引用不可被修改。P.S.当函数返回引用类型时，没有复制返回值。相反，返回的是对象本身。
     inline const vec3& operator+() const {return *this;}
     inline vec3 operator-() const {return vec3(-e[0], -e[1], -e[2]);}
     inline float  operator[](int i) const {return e[i];}
     inline float& operator[](int i) {return e[i];}
 
+    /*
+    &（右边这个）：形参是引用类型。当把参数声明为引用时，传递的是形参本身。此时不需要将形参的值拷贝（赋值）给实参，可以直接操纵形参。和指针类似。
+    const：修饰函数参数。表示函数体中不能修改参数的值（包括参数本身的值或者参数其中包含的值）
+    &（左边这个）：函数返回引用类型。当函数返回引用类型时，没有复制返回值。相反，返回的是对象本身。
+    */
     inline vec3& operator+=(const vec3 &v2);
     inline vec3& operator-=(const vec3 &v2);
     inline vec3& operator*=(const vec3 &v2);
@@ -33,10 +43,11 @@ public:
     }
     inline void make_unit_vector();
 
+    // 成员变量
     float e[3];
 };
 
-
+// 类体外：
 inline std::istream& operator>>(std::istream &is, vec3 &t){
     is >> t.e[0] >> t.e[1] >> t.e[2];
     return is;
