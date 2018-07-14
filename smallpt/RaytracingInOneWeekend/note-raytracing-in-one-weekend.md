@@ -32,116 +32,95 @@ std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 # Chapter 2: The vec3 class
 
 ## 问题三：类的头文件和实现文件分别写什么（用向量表示RGB输出“第一张图片”）
+http://www.cnblogs.com/ider/archive/2011/06/30/what_is_in_cpp_header_and_implementation_file.html
+
 ## 问题四：C++中inline是干嘛用的
 ## 问题五：C++中const是干嘛用的
 http://www.cnblogs.com/lichkingct/archive/2009/04/21/1440848.html
+https://blog.csdn.net/u010370871/article/details/48157447
 http://duramecho.com/ComputerInformation/WhyHowCppConst.html
-### Simple Use of ‘const’
+### 1. Simple Use of ‘const’ 修饰变量->定义常量
 ```c
+// 1. const修饰变量
+const int  a=5;
+int  const a=5;
+// 2. const修饰指针
+// 2.1 指针是常量不可变
+// const修饰的类型为char*的变量 pContent 为常量，因此，pContent的 指针本身 为常量不可变
+char * const pContent;
+const char * pContent;
+// 2.2 指针指向的内容不可变
 // const修饰的类型为char的变量 *pContent 为常量，因此，pContent的 内容 为常量不可变
 const char *pContent;
 char const *pContent;
-// const修饰的类型为char*的变量 pContent 为常量，因此，pContent的 指针本身 为常量不可变
-char* const pContent;
-const char* pContent;
-// 指针本身和指针内容两者皆为常量不可变
+// 2.3 指针本身和指针内容两者皆为常量不可变
 const char* const pContent;
 ```
+>tips：
+const在*左边表示const修饰的是指针p指向的内容；
+const在*右边表示const修饰的是指针p；
+
 It also works with pointers but one has to be careful where ‘const’ is put as that determines whether the pointer or what it points to is constant. For example,
 
-- _const_ int * Constant2
+- **_const_ int * Constant2**
     - declares that Constant2 is a variable pointer to a constant integer and
-- int _const_ * Constant2
+- **int _const_ * Constant2**
     - is an alternative syntax which does the same, whereas
-- int * _const_ Constant3
+- **int * _const_ Constant3**
     - declares that Constant3 is constant pointer to a variable integer and
-- int _const_ * _const_ Constant4
+- **int _const_ * _const_ Constant4**
     - declares that Constant4 is constant pointer to a constant integer.
 
 
 Basically ‘const’ applies to whatever is on its **immediate left** (other than if there is nothing there in which case it applies to whatever is its **immediate right**).
 
-Of the possible combinations of pointers and ‘const’, the **constant pointer to a variable** is useful for storage that can be changed in value but not moved in memory.
+Of the possible combinations of pointers and ‘const’, the **constant pointer to a variable is useful for storage that can be changed in value but not moved in memory**.
 
 Even more useful is **a pointer (constant or otherwise) to a ‘const’ value**. This is useful for returning constant strings and arrays from functions which, because they are implemented as pointers, the program could otherwise try to alter and crash. Instead of a difficult to track down crash, the attempt to alter unalterable values will be detected during compilation.
 
-### Use of ‘const’ in Functions Return Values
-- ```const int fun1()``` 这个其实无意义，因为参数返回本身就是赋值。
-- ```const int * fun2()``` 调用时 ```const int *pValue = fun2();```
-    - 我们可以把fun2()看作成一个变量，那么就是我们上面所说的 **指针内容** 不可变。
-- ```int* const fun3()``` 调用时 ```int * const pValue = fun2();```
-    - 我们可以把fun2()看作成一个变量，那么就是我们上面所说的 **指针本身** 不可变。
+### 2. Use of ‘const’ in Functions Return Values 修饰函数返回值
+const修饰函数返回值其实用的并不是很多，它的含义和const修饰普通变量以及指针的含义基本相同。
+
+- ```const int fun1()```
+    - 函数返回的是值（不是指针）, 无意义, 因为参数返回本身就是赋值。
+- ```const int * fun2()```
+    - 函数返回的是指针（不是值）, 调用时 ```const int *pValue = fun2();```
+    - 我们可以把fun2()看作成一个变量，即 **指针内容** 不可变。
+- ```int* const fun3()```
+    - 函数返回的是指针（不是值）调用时 ```int * const pValue = fun2();```
+    - 我们可以把fun2()看作成一个变量，即 **指针本身** 不可变。
 
 
 Even more useful is a pointer (constant or otherwise) to a ‘const’ value. This is useful for returning constant strings and arrays from functions which, because they are implemented as pointers, the program could otherwise try to alter and crash. Instead of a difficult to track down crash, the attempt to alter unalterable values will be detected during compilation.
 
-### Where it Gets Messy - in Parameter Passing
+### 3. In Parameter Passing 修饰函数参数
 ```c
 void function(const int Var);  //传递过来的参数在函数内不可以改变，无意义，因为Var是形参
-void function(const char * Var);//传递过来的参数指针所指内容 为常量不可变
 void function(char * const Var);//传递过来的参数指针本身 为常量不可变,无意义，因为char* Var也是形参
-
-// 参数为引用，增加效率，防止修改
-void function(const TYPE& Var);
+// const修饰指针指向的内容不变
+void function(const char * Var);//传递过来的参数指针所指内容 为常量不可变
+// 参数为引用，增加效率，为了防止参数在函数体内被修改所以加上const
+void function(const TYPE& Var);// explained below!
 ```
-
-When a **subroutine or function** is called with parameters, variables passed as the parameters might be read from in order to transfer data into the subroutine/function, written to in order to transfer data back to the calling program or both to do both.
-
-Some languages enable one to specify this directly, such as having ```in:, out: inout:``` parameter types, whereas in C one has to work at a lower level and specify the method for passing the variables choosing one that also allows the desired data transfer direction.
-
-For example, a subroutine like
-
-```
-void Subroutine1(int Parameter1)
-{ printf("%d",Parameter1);}
-```
-
-accepts the parameter passed to it in the default C & C++ way - which is a **copy**. Therefore the subroutine can read the value of the variable passed to it but not alter it because any alterations it makes are only made to the copy and are lost when the subroutine ends. E.g.
-
-```
-void Subroutine2(int Parameter1)
-{ Parameter1=96;}
-```
-
-would leave the variable it was called with unchanged not set to 96.
-
-The addition of an ‘&’ to the parameter name in C++ causes the actual variable itself, rather than a copy, to be used as the parameter in the subroutine and therefore can be written to thereby passing data back out the subroutine. Therefore
-
-```
-void Subroutine3(int &Parameter1)
-{ Parameter1=96;}
-```
-
-would set the variable it was called with to 96. This method of passing a variable as itself rather than a copy is called a **reference** in C++.
-
-That way of passing variables was a C++ addition to C. To pass an alterable variable in original C, a rather involved method was used. This involved using a **pointer** to the variable as the parameter then altering what it pointed to was used. For example
-
-```
-void Subroutine4(int *Parameter1)
-{ *Parameter1=96;}
-```
-
-works but requires the every use of the variable in the called routine altered like that and the calling routine also altered to pass a pointer to the variable. It is rather **cumbersome**.
-
 But where does ‘const’ come into this? Well, there is a second common use for passing data by reference or pointer instead of as a copy. That is **when copying the variable would waste too much memory or take too long**. This is particularly likely with large & compound user-defined variable types (‘structures’ in C & ‘classes’ in C++). So a subroutine declared
 
 ```
 void Subroutine4(big_structure_type &Parameter1);
 ```
 
-might being using ‘&’ because it is going to alter the variable passed to it or it might just be to save copying time and there is no way to tell which it is if the function is compiled in someone else’s library.** This could be a risk if one needs to trust the subroutine not to alter the variable.**
+might being using ‘&’ because it is going to alter the variable passed to it or it might just be to save copying time and there is no way to tell which it is if the function is compiled in someone else’s library.
 
-To solve this, ‘const’ can be used in the parameter list. E.g.
+**This could be a risk if one needs to trust the subroutine not to alter the variable.** To solve this, ‘const’ can be used in the parameter list. E.g.
 
 ```
 void Subroutine4(big_structure_type const &Parameter1);
 ```
 
-which will cause the variable to be passed without copying but stop it from then being altered. This is messy because it is essentially making an in-only variable passing method from a both-ways variable passing method which was itself made from an in-only variable passing method just to trick the compiler into doing some optimization.
+which will cause the variable to be **passed without copying but stop it from then being altered**. This is messy because it is essentially making an in-only variable passing method from a both-ways variable passing method which was itself made from an in-only variable passing method just to trick the compiler into doing some optimization.
 
 Ideally, the programmer should not need control this detail of specifying exactly how it variables are passed, just say which direction the information goes and leave the compiler to optimize it automatically, but C was designed for raw low-level programming on far less powerful computers than are standard these days so the programmer has to do it explicitly.
 
-### Messier Still - in the Object Oriented Programming
+### 4. In the Object Oriented Programming 修饰函数
 const修饰 **类的对象** 表示该对象为 **常量对象**，其中的任何成员都不能被修改。对于对象指针和对象引用也是一样。该对象的任何 **非const成员函数** 都不能被调用，因为任何非const成员函数会有修改成员变量的企图。
 ```
 class AAA{
@@ -165,7 +144,7 @@ class A{
 }
 ```
 const修饰 **类的成员函数**，则该成员函数不能修改类中任何 **非const成员变量**。
-一般写在函数的最后来修饰
+**一般写在函数的最后来修饰**
 ```
 class A{
     void function()const; //常成员函数, 它不改变对象的成员变量. 也不能调用类中任何非const成员函数。
@@ -213,11 +192,85 @@ where the 5 uses ‘const’ respectively mean that the variable pointed to by t
     - define宏仅仅是展开，有多少地方使用，就展开多少次，不会分配内存。
     - const常量会在内存中分配(可以是堆中也可以是栈中)。
 
-
-
-
 ## 问题六：C++中&是干嘛用的（引用类型）
+When a **subroutine or function** is called with parameters, variables passed as the parameters might be read from in order to transfer data into the subroutine/function, written to in order to transfer data back to the calling program or both to do both.
+
+Some languages enable one to specify this directly, such as having ```in:, out: inout:``` parameter types, whereas in C one has to work at a lower level and specify the method for passing the variables choosing one that also allows the desired data transfer direction.
+
+For example, a subroutine like
+```
+void Subroutine1(int Parameter1)
+{ printf("%d",Parameter1);}
+```
+accepts the parameter passed to it in the default C & C++ way - which is a **copy**. Therefore the subroutine can read the value of the variable passed to it but not alter it because any alterations it makes are only made to the copy and are lost when the subroutine ends. E.g.
+```
+void Subroutine2(int Parameter1)
+{ Parameter1=96;}
+```
+would leave the variable it was called with unchanged not set to 96.
+
+The addition of an ‘&’ to the parameter name in C++ causes the actual variable itself, rather than a copy, to be used as the parameter in the subroutine and therefore can be written to thereby passing data back out the subroutine. Therefore
+```
+void Subroutine3(int &Parameter1)
+{ Parameter1=96;}
+```
+would set the variable it was called with to 96. This method of passing a variable as itself rather than a copy is called a **reference** in C++.
+
+That way of passing variables was a C++ addition to C. To pass an alterable variable in original C, a rather involved method was used. This involved using a **pointer** to the variable as the parameter then altering what it pointed to was used. For example
+```
+void Subroutine4(int *Parameter1)
+{ *Parameter1=96;}
+```
+works but requires the every use of the variable in the called routine altered like that and the calling routine also altered to pass a pointer to the variable. It is rather **cumbersome**.
+
 ## 问题七：operator+=()是什么鬼函数？（重载操作符）
+https://blog.csdn.net/My_heart_/article/details/51534624
+
+operator是C++的关键字，它和运算符一起使用，表示一个运算符函数，理解时应将operator=整体上视为一个函数名。
+这是C++扩展运算符功能的方法，虽然样子古怪，但也可以理解：一方面要使运算符的使用方法与其原来一致，另一方面扩展其功能只能通过函数的方式（c++中，“功能”都是由函数实现的)。
+
+### 一、为什么使用操作符重载？
+对于系统的所有操作符，一般情况下，只支持基本数据类型和标准库中提供的class，对于用户自己定义class，如果想支持基本操作，比如比较大小，判断是否相等，等等，则需要用户自己来定义关于这个操作符的具体实现。比如，判断两个人是否一样大，我们默认的规则是按照其年龄来比较，所以，在设计person 这个class的时候，我们需要考虑操作符==，而且，根据刚才的分析，比较的依据应该是age。那么为什么叫重载呢？这是因为，在编译器实现的时候，已经为我们提供了这个操作符的基本数据类型实现版本，但是现在他的操作数变成了用户定义的数据类型class，所以，需要用户自己来提供该参数版本的实现。
+
+
+
+### 二、如何声明一个重载的操作符？
+#### A:  操作符重载实现为类成员函数
+重载的操作符 **在类体中被声明**，声明方式如同普通成员函数一样，只不过他的名字包含关键字operator，以及紧跟其后的一个C++预定义的操作符。可以用如下的方式来声明一个预定义的==操作符:
+```c
+class person{
+private:
+    int age;
+    public:
+    person(int a)
+    {
+       this->age=a;
+    }
+   inline bool operator == (const person &ps) const;
+};
+// 实现方式如下：
+inline bool person::operator==(const person &ps) const
+{
+
+     if (this->age==ps.age)
+        return true;
+     return false;
+}
+// 调用方式如下：
+#include<iostream>
+using namespace std;
+int main()
+{
+  person p1(10);
+  person p2(20);
+  if(p1==p2)
+ cout<<”the age is equal!”< return 0;
+}
+```
+这里，因为operator == 是class person的一个成员函数，所以对象p1,p2都可以调用该函数，上面的if语句中，相当于p1调用函数==，把p2作为该函数的一个参数传递给该函数，从而实现了两个对象的比较。
+
+#### 
+
 ## 问题八：C++中this是干嘛用的
 ## 问题九：C++中::是干嘛用的（域解析操作符）
 ## 问题十：【总结】解决了问题四~问题九，vec3这个类的代码应该都能看懂了
