@@ -2,7 +2,7 @@
 #define RAYH
 #include "vec3.h"
 
-class Ray{
+class ray{
 public:
     ray(){};
     ray(const vec3& a, const vec3& b) {A = a; B = b;}

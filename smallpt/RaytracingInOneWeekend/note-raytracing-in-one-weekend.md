@@ -1,5 +1,6 @@
 # Chapter 0: Overview
 ## [问题一：CodeBlocks环境搭建及创建第一个C++程序](https://blog.csdn.net/libing_zeng/article/details/54410627)
+
 ### Using Command Line
 * Windows
 
@@ -32,13 +33,15 @@ std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 # Chapter 2: The vec3 class
 
 ## 问题三：类的头文件和实现文件分别写什么（用向量表示RGB输出“第一张图片”）
-http://www.cnblogs.com/ider/archive/2011/06/30/what_is_in_cpp_header_and_implementation_file.html
+- http://www.cnblogs.com/ider/archive/2011/06/30/what_is_in_cpp_header_and_implementation_file.html
 
 ## 问题四：C++中inline是干嘛用的
+TBC
+
 ## 问题五：C++中const是干嘛用的
-http://www.cnblogs.com/lichkingct/archive/2009/04/21/1440848.html
-https://blog.csdn.net/u010370871/article/details/48157447
-http://duramecho.com/ComputerInformation/WhyHowCppConst.html
+- http://www.cnblogs.com/lichkingct/archive/2009/04/21/1440848.html
+- https://blog.csdn.net/u010370871/article/details/48157447
+- http://duramecho.com/ComputerInformation/WhyHowCppConst.html
 ### 1. Simple Use of ‘const’ 修饰变量->定义常量
 ```c
 // 1. const修饰变量
@@ -370,3 +373,25 @@ Test Test::operator++(int){
 
 ## 问题九：C++中::是干嘛用的（域解析操作符）
 ## 问题十：【总结】解决了问题四~问题九，vec3这个类的代码应该都能看懂了
+## 问题十一：用条件编译（#if…#endif）避免 main函数中测试代码在测试完成后就删除
+```c
+#define testNumber 3
+/*
+1: output the first image
+2: test "int &ri，int& ri，int*&pri"
+3: output the first image by using vector.
+*/
+#if testNumber == 1 /*1: output the first image*/
+//完整的测试代码1
+#elif testNumber == 2 /*2: test "int &ri，int& ri，int*&pri"*/
+//完整的测试代码2
+#elif testNumber == 3 /*3: output the first image by using vector.*/
+//完整的测试代码3
+#endif // testNumber
+```
+可以通过修改宏定义中testNumber的值来控制编译的代码块，也就是控制测试模块。想测试哪一块，就将testNumber修改成对应的值即可；想添加一个新的测试块，在添加一个“#elif testNumber == …”即可。
+
+## 问题十二：怎么用ray tracing画第一张图
+see --> note-theories
+
+# Chapter 3: Rays, a simple camera, and background
