@@ -56,10 +56,20 @@ vec3 color(const ray& r){
     // blended_value = (1-t)*start_value + t*end_value
 }
 */
+vec3 random_in_unit_sphere(){
+    vec3 p;
+    do{
+        p = 2.0*vec3(drand48(), drand48(), drand48()) - vec3(1,1,1);
+    } while (p.squared_length() >= 1.0);
+    return p;
+}
+
 vec3 color(const ray& r, hitable *world){
     hit_record rec;
-    if(world->hit(r, 0.0, (numeric_limits<float>::max)(), rec)){ // ref. of rec is passed in
-        return 0.5*vec3(rec.normal.x()+1, rec.normal.y()+1, rec.normal.z()+1);
+    if(world->hit(r, 0.001, MAXFLOAT, rec)){ // the ref. of rec is passed in, (numeric_limits<float>::max)()
+        vec3 target = rec.p + rec.normal + random_in_unit_sphere();
+        // return 0.5*vec3(rec.normal.x()+1, rec.normal.y()+1, rec.normal.z()+1); // draw normal coloration
+        return 0.5*color(ray(rec.p, target-rec.p), world);
     }
     else{
         // background
@@ -70,9 +80,9 @@ vec3 color(const ray& r, hitable *world){
 }
 
 int main(){
-    int nx = 200;
-    int ny = 100;
-    int ns = 100; // samples
+    int nx = 800;
+    int ny = 400;
+    int ns = 100; /* 每个像素点区域采样ns次，此处ns=100 */
 
     // 将结果输出到文件
     ofstream outfile("test.ppm", ios_base::out);
@@ -97,7 +107,9 @@ int main(){
                 vec3 p = r.point_at_parameter(2.0);
                 col += color(r, world); // 根据光线对每一个像素点上色
             }
-            col /= float(ns);
+            col /= float(ns); /* 将这个像素点区域的所有ns个随机采样点的颜色累加值除以ns获得其平均值，作为这个像素点区域最终的像素值。 */
+            col = vec3(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
+
             int ir = int(255.99*col[0]);
             int ig = int(255.99*col[1]);
             int ib = int(255.99*col[2]);
