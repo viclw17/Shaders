@@ -5,6 +5,7 @@
 // #include "ray.h" // including vec3.h
 #include "sphere.h"
 #include "hitable_list.h" // including hitable.h which includes ray.h
+#include "camera.h"
 #include "float.h"
 
 using namespace std;
@@ -37,7 +38,7 @@ float hit_sphere(const vec3& center, float radius, const ray& r){
 }
 */
 
-// the core of a raytracer is to send rays through pixels and compute what color is seen in the direction od those rays. This is of the form calculate which ray goes from the eye to a pixel, compute what that ray intersects, and compute a color for that intersection point.
+// the core of a raytracer is to send rays through pixels and compute what color is seen in the direction of those rays. This is of the form calculate which ray goes from the eye to a pixel, compute what that ray intersects, and compute a color for that intersection point.
 // now all rewritten for multiple objects
 /*
 vec3 color(const ray& r){
@@ -71,40 +72,32 @@ vec3 color(const ray& r, hitable *world){
 int main(){
     int nx = 200;
     int ny = 100;
+    int ns = 100; // samples
 
     // 将结果输出到文件
     ofstream outfile("test.ppm", ios_base::out);
     outfile << "P3\n" << nx << " " << ny << "\n255\n";
     //std::cout << "P3\n" << nx << " " << ny << "\n255\n";
 
-    /*
-    Followed the right-handed coordinate system, z is pointing out of screen. So pointing into the screen is the negative z-axis.
-    Tranverse the screen from lower_left_corner and use 2 offset vectors along the screen sides to move the ray endpoint across the screen
-    */
-    vec3 lower_left_corner(-2.0,-1.0,-1.0);
-    vec3 horizontal(4.0,0.0,0.0);
-    vec3 vertical(0.0,2.0,0.0);
-    vec3 origin(0.0,0.0,0.0);
-
     hitable *list[2]; // 一个储存有2个“指向hitable对象的指针”的数组
     list[0] = new sphere(vec3(0,0,-1), 0.5);
     list[1] = new sphere(vec3(0,-100.5,-1), 100);
     hitable *world = new hitable_list(list, 2); // world是一个指向hitable对象的指针变量
 
+    camera cam;
+
     for(int j=ny-1; j>=0; j--){
         for(int i=0; i<nx; i++){
-            // float r = float(i)/float(nx);
-            // float g = float(j)/float(ny);
-            // float b = 0.2;
-            float u = float(i)/float(nx); // 0~1
-            float v = float(j)/float(ny);
-
-            // 产生光线
-            ray r(origin, lower_left_corner + u*horizontal + v* vertical);
-
-            // 根据光线对每一个像素点上色
-            vec3 col = color(r, world);
-
+            vec3 col(0,0,0);
+            // new changes for antialiasing(multi-sampling per pixel)
+            for(int s=0; s < ns; s++){
+                float u = float(i + drand48())/float(nx); // 0~1
+                float v = float(j + drand48())/float(ny);
+                ray r = cam.get_ray(u,v); // generate ray per sample
+                vec3 p = r.point_at_parameter(2.0);
+                col += color(r, world); // 根据光线对每一个像素点上色
+            }
+            col /= float(ns);
             int ir = int(255.99*col[0]);
             int ig = int(255.99*col[1]);
             int ib = int(255.99*col[2]);

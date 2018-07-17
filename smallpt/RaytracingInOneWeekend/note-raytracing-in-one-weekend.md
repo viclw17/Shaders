@@ -4,7 +4,7 @@
 ### Using Command Line
 * Windows
 
-Run command line ```g++ main.cpp``` in Cygwin, and this output a ```a.exe``` file. Run the file with ```./a.exe``` and this generate the final file ```test.ppm```. File can be opened with **File Viewer Plus**.
+Run command line ```g++ main.cpp``` in Cygwin, and this output a ```a.exe``` file. Run the file with ```./a.exe``` and this generate the final file ```test.ppm```. File can be opened with **FXnView**.
 
 * Mac
 
@@ -373,6 +373,8 @@ Test Test::operator++(int){
 
 ## 问题九：C++中::是干嘛用的（域解析操作符）
 ## 问题十：【总结】解决了问题四~问题九，vec3这个类的代码应该都能看懂了
+
+# Chapter 3: Rays, a simple camera, and background
 ## 问题十一：用条件编译（#if…#endif）避免 main函数中测试代码在测试完成后就删除
 ```c
 #define testNumber 3
@@ -394,4 +396,124 @@ Test Test::operator++(int){
 ## 问题十二：怎么用ray tracing画第一张图
 see --> note-theories
 
-# Chapter 3: Rays, a simple camera, and background
+# Chapter 4: Adding a sphere
+## 问题十三：怎么用ray tracing画个球
+
+# Chapter 5: Surface normals and multiple objects
+## 问题十四：怎么可视化球的法向量
+see --> note-theories
+## 问题十五：C++中抽象类，虚函数是什么鬼？怎么测试
+### 纯虚函数
+纯虚函数是在 **基类中声明的虚函数**，它在 **基类中没有定义**，但要求任何派生类都要定义自己的实现方法。在基类中实现纯虚函数的方法是在函数原型后加“=0”
+
+### 引入原因
+1. 为了方便使用 **多态** 特性，我们常常需要在基类中定义虚拟函数。
+2. 在很多情况下，基类本身生成对象是不合情理的。_例如，动物作为一个基类可以派生出老虎、孔雀等子类，但动物本身生成对象明显不合常理。_ 为了解决上述问题，引入了纯虚函数的概念，将函数定义为纯虚函数（方法：virtual ReturnType Function() = 0;），则编译器要求在派生类中必须予以重载以实现多态性。同时含有纯虚拟函数的类称为 **抽象类**，它不能生成对象。这样就很好地解决了上述两个问题。
+
+### 相似概念
+多态性
+指相同对象收到不同消息或不同对象收到相同消息时产生不同的实现动作。C++支持两种多态性：**编译时多态性**，**运行时多态性**。
+- 编译时多态性：通过函数重载和运算符重载来实现的。
+- 运行时多态性：通过继承和虚函数来实现的。
+
+虚函数
+虚函数是在基类中被声明为virtual，并在派生类中重新定义的成员函数，可实现成员函数的动态重载。纯虚函数的声明有着特殊的语法格式：virtual 返回值类型成员函数名（参数表）=0；
+
+请注意，纯虚函数应该只有声明，没有具体的定义，即使给出了纯虚函数的定义也会被编译器忽略。
+
+抽象类
+包含纯虚函数的类称为抽象类。由于抽象类包含了没有定义的纯虚函数，所以不能定义抽象类的对象。在C++中，我们可以把只能用于被继承而不能直接创建对象的类设置为抽象类（Abstract Class）。
+
+之所以要存在抽象类，最主要是因为它具有不确定因素。我们把那些类中的确存在，但是在父类中无法确定具体实现的成员函数称为纯虚函数。纯虚函数是一种特殊的虚函数，它只有声明，没有具体的定义。抽象类中至少存在一个纯虚函数；存在纯虚函数的类一定是抽象类。**存在纯虚函数是成为抽象类的充要条件。**
+
+```
+----------------------------------------------test_base.h----------------------------------------------
+#ifndefTEST_BASE_H
+#defineTEST_BASE_H
+classtest_base{
+public:
+    // test_base() {} /*抽象类不需要构造函数，因为他不会有对象*/
+    virtual void vfb() = 0; /*虚函数的声明：“virtual”+普通函数声明方式+“=0”*/
+};
+#endif //TEST_BASE_H
+----------------------------------------------test_base.cpp----------------------------------------------
+test_base.cpp为空
+
+// 子类（继承抽象类，必须实现父类的虚函数）：test_extend1和test_extend2
+----------------------------------------------test_extend1.h --------------------------------------------
+#ifndefTEST_EXTEND1_H
+#defineTEST_EXTEND1_H
+#include<test_base.h>
+classtest_extend1 : public test_base{
+public:
+    test_extend1() {}  /*这个一定要有，不能写成“test_extend1(); ???”*/
+    virtual void vfb(); /*子类中声明虚函数：“virtual”+普通函数声明方式。注意此处没有“=0”*/
+};
+#endif //TEST_EXTEND1_H
+----------------------------------------------test_extend1.cpp------------------------------------------
+#include"test_extend1.h"
+#include<iostream>
+usingnamespace std;
+void test_extend1::vfb(){
+    /*特别注意：子类对虚函数的实现要放在.cpp中（不能放在.h中）。为什么？原因不详。但是如果放在.h编译时会报“multiple definition”的错误（搞不清为什么，不同子类对其实现时会报这样的错误，蓝瘦，香菇）*/
+    std::cout <<"test_extend1::vfb()" << endl;
+}
+
+----------------------------------------------test_extend2.h--------------------------------------------
+#ifndefTEST_EXTEND2_H
+#defineTEST_EXTEND2_H
+#include<test_base.h>
+classtest_extend2 : public test_base{
+public:
+    test_extend2() {}
+    virtual void vfb();
+};
+----------------------------------------------test_extend2.cpp------------------------------------------
+#include"test_extend2.h"
+#include<iostream>
+usingnamespace std;
+void test_extend2::vfb(){
+    std::cout <<"test_extend2::vfb()" << endl;
+}
+----------------------------------------------main.cpp------------------------------------------
+#include"test_extend1.h"
+#include "test_extend2.h"
+int main(){
+    test_base *te1 = new test_extend1();
+    test_base *te2 = new test_extend2(); /*新建子类对象*/
+    te1->vfb();
+    te2->vfb(); /*调用子类实现的父类的虚函数*/
+    return 0;
+}
+```
+## 问题十六：使用初始化列表的构造函数和使用函数体的构造函数有什么区别？
+其中这条语句：
+```
+sphere(vec3cen, float r) : center(cen), radius(r) {}
+```
+就是使用初始化列表的构造函数。构造函数初始化列表以一个冒号开始，接着是以逗号分隔的数据成员列表，每个数据成员后面跟一个放在括号中的初始化式。上面这条语句做的事情是：将center初始化为cen；将radius初始化为r。特别注意这里是 **初始化**，不是赋值，不是赋值，不是赋值。
+
+其等效的使用函数体的构造函数是：（函数体中赋值）
+```
+sphere(vec3 cen, float r){
+     center = cen;
+     radius = r;
+}
+```
+使用初始化列表的构造函数和使用函数体的构造函数有区别吗？答案是：有
+根本区别可以归结于“初始化”和“赋值”的区别
+其一，“赋值”是属于计算。所以，时序上，初始化早于赋值
+其二，有些类型的变量是只能初始化，不能赋值的。比如 const和引用。
+
+看看网友怎么说：
+http://blog.csdn.net/zuijinhaoma8/article/details/45919125
+
+构造函数可以分两个阶段进行：（1）初始化阶段；（2）普通计算阶段。计算阶段也就是由函数体内所有的语句组成。不管成员是否在构造函数初始化列表中显式初始化，类的数据成员初始化总是在初始化阶段进行，**初始化阶段先于计算阶段**。构造函数初始化列表是对类的成员做初始化，而在构造函数体内只是对类的数据成员进行了一次赋值操作。
+
+构造函数初始化列表只是指定了成员的初始值，并没有指定初始化顺序，那么成员初始化顺序又是怎样的呢？成员的初始化顺序就是定义成员的顺序，第一个定义的成员首先被初始化，然后是第二个等等。
+
+一、若类的数据成员是静态的(const)和引用类型，必需用初始化列表
+静态(const)的数据成员只能初始化而不能赋值，同样引用类型也是只可以被初始化，那么只有用初始化列表。
+二、构造函数体内赋值会带来额外的开销，效率会低于构造函数初始化列表
+
+## 问题十七：怎么用ray tracing画多个球？
