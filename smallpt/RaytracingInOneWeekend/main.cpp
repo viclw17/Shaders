@@ -69,6 +69,10 @@ vec3 color(const ray& r, hitable *world){
     if(world->hit(r, 0.001, MAXFLOAT, rec)){ // the ref. of rec is passed in, (numeric_limits<float>::max)()
         vec3 target = rec.p + rec.normal + random_in_unit_sphere();
         // return 0.5*vec3(rec.normal.x()+1, rec.normal.y()+1, rec.normal.z()+1); // draw normal coloration
+
+        /*
+        撞击一次，乘以系数0.5。然后以反射光线（以P为起点，PM为方向向量）去撞击球，直到没有撞击到任何球，（下方else语句中）最后带着系数乘以背景颜色值作为球体该像素点的颜色*/
+
         return 0.5*color(ray(rec.p, target-rec.p), world);
     }
     else{
@@ -107,7 +111,13 @@ int main(){
                 vec3 p = r.point_at_parameter(2.0);
                 col += color(r, world); // 根据光线对每一个像素点上色
             }
-            col /= float(ns); /* 将这个像素点区域的所有ns个随机采样点的颜色累加值除以ns获得其平均值，作为这个像素点区域最终的像素值。 */
+
+            /*
+            将这个像素点区域的所有ns个随机采样点的颜色累加值除以ns获得其平均值，作为这个像素点区域最终的像素值。
+            */
+            col /= float(ns);
+
+            // gamma correction
             col = vec3(sqrt(col[0]), sqrt(col[1]), sqrt(col[2]));
 
             int ir = int(255.99*col[0]);
