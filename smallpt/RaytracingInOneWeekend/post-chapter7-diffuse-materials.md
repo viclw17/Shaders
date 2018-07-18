@@ -23,6 +23,19 @@ In RTIOW we are using a simple algorithm to approximate mathematically ideal [La
 # Algorithm
 From the point $P$ where ray hit on the sphere, we need to form a unit sphere that is tangent to this hitpoint. We can get the center position of this sphere by $P+N$ where $N$ is the surface normal at point $P$.
 
-Then we pick a random point $S$ in this unit sphere, and send a ray from $P$ to $S$ to build a random diffuse reflection vector $\overrightarrow{PS}$
+Then we pick a random point $S$ in this unit sphere, and send a ray from $P$ to $S$ to build a random diffuse reflection vector $\overrightarrow{PS}$.
 
 Next we need to form another unit sphere centered at ray(view) origin, and pick a random point in it to cast a ray. To do this we are using a **rejection method**.
+
+Explanation of [example](https://en.wikipedia.org/wiki/Rejection_sampling#Examples) in 2D case:
+> As a simple geometric example, suppose it is desired to generate a random point within the unit circle. Generate a candidate point $(x,y)$ where $x$ and $y$ are independent uniformly distributed between −1 and 1. If it happens that $x^{2}+y^{2}\leq 1$ then the point is within the unit circle and should be accepted. If not then this point should be rejected and another candidate should be generated.
+
+``` c
+vec3 random_in_unit_sphere(){
+    vec3 p;
+    do{
+        p = 2.0*vec3(drand48(), drand48(), drand48()) - vec3(1,1,1);
+    } while (p.squared_length() >= 1.0);
+    return p;
+}
+```
