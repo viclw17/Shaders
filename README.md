@@ -9,7 +9,7 @@
 - [keijiro's blog](http://radiumsoftware.tumblr.com/tagged/glsl)
 
 ## Tools & Reference
-- https://www.shaderific.com/)
+- [Shaderific](https://www.shaderific.com/)
 - [kodelife](https://hexler.net/software/kodelife)
 - [ezgif](https://ezgif.com/)
 
