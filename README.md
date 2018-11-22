@@ -1,15 +1,20 @@
 # Shaders Practice Repo
-- [shadertoy](https://www.shadertoy.com/user/viclw17)
+## Sandbox
+- [Shadertoy](https://www.shadertoy.com/user/viclw17)
 - [GLSL Sandbox](http://glslsandbox.com/)
-- [kodelife](https://hexler.net/software/kodelife)
-- [keijiro/ShaderSketches](https://github.com/keijiro/ShaderSketches/tree/master/Fragment)
-- [keijiro's blog](http://radiumsoftware.tumblr.com/tagged/glsl)
-- [The Book of Shaders](https://thebookofshaders.com/)
-- [ezgif](https://ezgif.com/)
-- http://www.shaderific.com/
-- https://en.wikipedia.org/wiki/Transformation_matrix
 
-<br>
+## Blogs
+- [The Book of Shaders](https://thebookofshaders.com/)
+- [Shadertoy – Unofficial](https://shadertoyunofficial.wordpress.com/)
+- [keijiro's blog](http://radiumsoftware.tumblr.com/tagged/glsl)
+
+## Tools & Reference
+- [Shaderific](https://www.shaderific.com/)
+- [kodelife](https://hexler.net/software/kodelife)
+- [ezgif](https://ezgif.com/)
+
+
+<!-- <br>
 <table>
   <tr>
     <th>
@@ -20,4 +25,4 @@
     </th>
   </tr>
 </table>
-</p>
+</p> -->
