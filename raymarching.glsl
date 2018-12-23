@@ -6,15 +6,34 @@
 //     vec3 v_normal;
 //     vec2 v_texcoord;
 // } inData;
-
+//
 // out vec4 fragColor;
 
 ////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////
-
+// The following default uniforms are available to your shader.
+uniform vec2 u_resolution; // size of the preview
+uniform vec2 u_mouse; // cursor in normalized coordinates [0, 1)
+uniform float u_time; // clock in seconds
+// The variants iResolution, iMouse and iGlobalTime
+// can also be used for legacy reasons.
 uniform vec2 iResolution;
-uniform float iGlobalTime;// iTime;
+uniform vec2 iMouse;
+uniform float iGlobalTime;
 float iTime = iGlobalTime;
+
+// shadertoy inputs
+// uniform vec3      iResolution;           // viewport resolution (in pixels)
+// uniform float     iTime;                 // shader playback time (in seconds)
+// uniform float     iTimeDelta;            // render time (in seconds)
+// uniform int       iFrame;                // shader playback frame
+// uniform float     iChannelTime[4];       // channel playback time (in seconds)
+// uniform vec3      iChannelResolution[4]; // channel resolution (in pixels)
+// uniform vec4      iMouse;                // mouse pixel coords. xy: current (if MLB down), zw: click
+
+// kodelife inputs
+// uniform vec2 iResolution;
+// uniform float iTime;
 // uniform float iTimeDelta;
 // uniform int iFrame;
 // uniform vec4 iMouse;
